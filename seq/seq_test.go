@@ -262,7 +262,7 @@ func TestReverse(t *testing.T) {
 	}{
 		{New(1, 2, 3), []int{3, 2, 1}},
 		{New(1), []int{1}},
-		//{New[int](), []int{}},
+		// {New[int](), []int{}},
 	}
 
 	for _, test := range tests {
@@ -320,7 +320,7 @@ func TestTake(t *testing.T) {
 		{New(1, 2, 3, 4), 2, []int{1, 2}},
 		{New(1, 2, 3), 5, []int{1, 2, 3}},
 		{New(1, 2, 3), 0, []int{}},
-		//{New[int](), 2, []int{}},
+		// {New[int](), 2, []int{}},
 	}
 
 	for _, test := range tests {

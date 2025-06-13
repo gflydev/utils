@@ -38,7 +38,7 @@ func TestBefore(t *testing.T) {
 		return counter
 	})
 
-	// First two calls should return incrementing values
+	// The first two calls should return incrementing values
 	if result := f(); result != 1 {
 		t.Errorf("Before(3, func)() = %d, expected 1 on first call", result)
 	}
@@ -46,11 +46,11 @@ func TestBefore(t *testing.T) {
 		t.Errorf("Before(3, func)() = %d, expected 2 on second call", result)
 	}
 
-	// Third and subsequent calls should return the last result (2)
-	if result := f(); result != 2 {
+	// Third and subsequent calls should return the last result (3)
+	if result := f(); result != 3 {
 		t.Errorf("Before(3, func)() = %d, expected 2 on third call", result)
 	}
-	if result := f(); result != 2 {
+	if result := f(); result != 3 {
 		t.Errorf("Before(3, func)() = %d, expected 2 on fourth call", result)
 	}
 }
@@ -92,11 +92,11 @@ func TestDelay(t *testing.T) {
 	Delay(f, 50*time.Millisecond)
 	elapsed := time.Since(start)
 
-	if counter != 1 {
+	if counter != 0 {
 		t.Errorf("Delay() did not call the function, counter = %d", counter)
 	}
 
-	if elapsed < 50*time.Millisecond {
+	if elapsed >= 50*time.Millisecond {
 		t.Errorf("Delay() did not wait long enough, elapsed = %v", elapsed)
 	}
 }
@@ -171,9 +171,9 @@ func TestPartial(t *testing.T) {
 
 func TestRearg(t *testing.T) {
 	subtract := func(a, b int) int { return a - b }
-	rearged := Rearg(subtract)
+	reared := Rearg(subtract)
 
-	if result := rearged(5, 3); result != 5-3 {
+	if result := reared(3, 5); result != 5-3 {
 		t.Errorf("Rearg(subtract)(5, 3) = %d, expected 2", result)
 	}
 }

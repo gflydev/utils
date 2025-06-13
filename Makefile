@@ -22,7 +22,6 @@ test.arr:
 test.coll:
 	go test -v -timeout 30s ./coll
 
-
 test.str:
 	go test -v -timeout 30s ./str
 
@@ -37,6 +36,5 @@ test.num:
 
 test.obj:
 	go test -v -timeout 30s ./obj
-
 
 all: critic security vulncheck lint test

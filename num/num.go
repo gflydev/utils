@@ -9,6 +9,9 @@ import (
 // Clamp clamps a number between lower and upper bounds.
 // Example: Clamp(10, 0, 5) -> 5
 func Clamp(n, lower, upper float64) float64 {
+	if lower > upper {
+		lower, upper = upper, lower
+	}
 	return math.Min(math.Max(n, lower), upper)
 }
 

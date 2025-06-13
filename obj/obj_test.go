@@ -134,11 +134,11 @@ func TestFromEntries(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	obj := map[string]interface{}{
+	obj := map[string]any{
 		"a": 1,
-		"b": map[string]interface{}{
+		"b": map[string]any{
 			"c": 2,
-			"d": map[string]interface{}{
+			"d": map[string]any{
 				"e": 3,
 			},
 		},

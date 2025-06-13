@@ -39,7 +39,7 @@ func Words(str string) []string {
 	// - Numbers followed by letters (8Value -> 8, Value)
 	// - CamelCase transitions
 	// - Underscores, hyphens, and other separators
-	wordRegex := regexp.MustCompile(`[A-Z]*[a-z]+|[A-Z]+[a-z]*|[0-9]+|[a-z]+`)
+	wordRegex := regexp.MustCompile(`[A-Z]*[a-z]+|[A-Z]+[a-z]*|\d+|[a-z]+`)
 
 	// Find all matches
 	matches := wordRegex.FindAllString(str, -1)

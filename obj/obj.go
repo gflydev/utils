@@ -4,11 +4,12 @@ package obj
 import (
 	"reflect"
 	"sort"
+	"strings"
 )
 
 // Assign assigns properties of source objects to the destination object.
 // It's similar to Object.assign() in JavaScript.
-// Example: Assign(map[string]interface{}{"a": 1}, map[string]interface{}{"b": 2}) -> map[string]interface{}{"a": 1, "b": 2}
+// Example: Assign(map[string]any{"a": 1}, map[string]any{"b": 2}) -> map[string]any{"a": 1, "b": 2}
 func Assign[K comparable, V any](dest map[K]V, sources ...map[K]V) map[K]V {
 	result := make(map[K]V)
 
@@ -28,7 +29,7 @@ func Assign[K comparable, V any](dest map[K]V, sources ...map[K]V) map[K]V {
 }
 
 // Clone creates a shallow clone of an object.
-// Example: Clone(map[string]interface{}{"a": 1, "b": 2}) -> map[string]interface{}{"a": 1, "b": 2}
+// Example: Clone(map[string]any{"a": 1, "b": 2}) -> map[string]any{"a": 1, "b": 2}
 func Clone[K comparable, V any](obj map[K]V) map[K]V {
 	result := make(map[K]V, len(obj))
 	for k, v := range obj {
@@ -62,41 +63,53 @@ func FromEntries[K comparable, V any](entries []Entry[K, V]) map[K]V {
 	return result
 }
 
-// Get gets the value at path of object.
+// Get retrieves a value from a nested map using dot notation path
 // Example: Get(map[string]interface{}{"a": map[string]interface{}{"b": 2}}, "a.b") -> 2
-func Get[T any](obj interface{}, path string) (T, bool) {
+func Get[T any](obj map[string]any, path string) (T, bool) {
 	var zero T
-	val := reflect.ValueOf(obj)
 
-	// Handle nil
-	if !val.IsValid() {
-		return zero, false
-	}
+	// Split the path by dots
+	keys := strings.Split(path, ".")
 
-	// If path is empty, return the object itself if it's of type T
-	if path == "" {
-		if val.Type().ConvertibleTo(reflect.TypeOf(zero)) {
-			return val.Convert(reflect.TypeOf(zero)).Interface().(T), true
+	// Start with the root object
+	current := any(obj)
+
+	// Navigate through each key in the path
+	for _, key := range keys {
+		// Check if current value is a map
+		currentMap, ok := current.(map[string]any)
+		if !ok {
+			return zero, false
 		}
+
+		// Get the value for the current key
+		value, exists := currentMap[key]
+		if !exists {
+			return zero, false
+		}
+
+		// Move to the next level
+		current = value
+	}
+
+	// Try to convert the final value to the expected type
+	result, ok := current.(T)
+	if !ok {
 		return zero, false
 	}
 
-	// TODO: Implement path traversal
-	// This is a complex operation that requires parsing the path and traversing the object
-	// For now, we'll just return a zero value and false
-
-	return zero, false
+	return result, true
 }
 
 // Has checks if path is a direct property of object.
-// Example: Has(map[string]interface{}{"a": 1, "b": 2}, "a") -> true
+// Example: Has(map[string]any{"a": 1, "b": 2}, "a") -> true
 func Has[K comparable, V any](obj map[K]V, key K) bool {
 	_, ok := obj[key]
 	return ok
 }
 
 // Keys returns an array of object's own enumerable property names.
-// Example: Keys(map[string]interface{}{"a": 1, "b": 2}) -> []string{"a", "b"}
+// Example: Keys(map[string]any{"a": 1, "b": 2}) -> []string{"a", "b"}
 func Keys[K comparable, V any](obj map[K]V) []K {
 	result := make([]K, 0, len(obj))
 	for k := range obj {
@@ -106,7 +119,7 @@ func Keys[K comparable, V any](obj map[K]V) []K {
 }
 
 // KeysSorted returns a sorted array of object's own enumerable property names.
-// Example: KeysSorted(map[string]interface{}{"b": 2, "a": 1}) -> []string{"a", "b"}
+// Example: KeysSorted(map[string]any{"b": 2, "a": 1}) -> []string{"a", "b"}
 func KeysSorted[K comparable, V any](obj map[K]V) []K {
 	keys := Keys(obj)
 
@@ -147,7 +160,7 @@ func MapKeys[K comparable, V any, R comparable](obj map[K]V, iteratee func(K) R)
 
 // Merge merges properties of source objects into the destination object.
 // Note: This is a simplified version that doesn't do deep merging due to Go's type system limitations.
-// Example: Merge(map[string]interface{}{"a": 1}, map[string]interface{}{"b": 2}) -> map[string]interface{}{"a": 1, "b": 2}
+// Example: Merge(map[string]any{"a": 1}, map[string]any{"b": 2}) -> map[string]any{"a": 1, "b": 2}
 func Merge[K comparable, V any](dest map[K]V, sources ...map[K]V) map[K]V {
 	result := Clone(dest)
 

@@ -146,7 +146,7 @@ func Rearg[T, R any](fn func(T, T) R) func(T, T) R {
 }
 
 // Throttle creates a throttled function that only invokes func at most once per every wait milliseconds.
-// Example: fn := Throttle(func() { fmt.Println("called") }, 100); fn(); fn(); fn() // prints "called" only once per 100ms
+// Example: fn := Throttle(func() { fmt.Println("called") }, 100*time.Millisecond); fn(); fn(); fn() // prints "called" only once per 100ms
 func Throttle(fn func(), wait time.Duration) func() {
 	var (
 		lastInvoke time.Time
@@ -158,9 +158,9 @@ func Throttle(fn func(), wait time.Duration) func() {
 		defer mu.Unlock()
 
 		now := time.Now()
-		if now.Sub(lastInvoke) >= wait {
+		if lastInvoke.IsZero() || now.Sub(lastInvoke) >= wait {
 			lastInvoke = now
-			go fn()
+			fn()
 		}
 	}
 }

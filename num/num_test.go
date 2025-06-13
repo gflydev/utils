@@ -422,7 +422,7 @@ func TestSumBy(t *testing.T) {
 		{
 			[]person{{"Alice", 25}, {"Bob", 30}, {"Charlie", 20}},
 			func(p person) float64 { return float64(len(p.name)) },
-			16,
+			15,
 		},
 		{
 			[]person{},
@@ -465,7 +465,7 @@ func TestMeanBy(t *testing.T) {
 		{
 			[]person{{"Alice", 25}, {"Bob", 30}, {"Charlie", 20}},
 			func(p person) float64 { return float64(len(p.name)) },
-			5.333333333333333,
+			5.00000,
 		},
 		{
 			[]person{},
