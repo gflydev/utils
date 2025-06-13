@@ -488,3 +488,126 @@ func TestMeanBy(t *testing.T) {
 		t.Errorf("MeanBy(%v, func) = %f, expected %f", numbers, result, 6.0)
 	}
 }
+
+func TestCeiling(t *testing.T) {
+	tests := []struct {
+		n         float64
+		precision []int
+		expected  float64
+	}{
+		{4.3, []int{}, 5},
+		{4.7, []int{}, 5},
+		{-4.3, []int{}, -4},
+		{-4.7, []int{}, -4},
+		{4.357, []int{2}, 4.36},
+		{4.351, []int{2}, 4.36},
+		{-4.357, []int{2}, -4.35},
+		{-4.351, []int{2}, -4.35},
+		{4.357, []int{1}, 4.4},
+		{4.351, []int{1}, 4.4},
+	}
+
+	for _, test := range tests {
+		result := Ceiling(test.n, test.precision...)
+		if result != test.expected {
+			t.Errorf("Ceiling(%f, %v) = %f, expected %f", test.n, test.precision, result, test.expected)
+		}
+	}
+}
+
+func TestFormat(t *testing.T) {
+	tests := []struct {
+		number             float64
+		decimals           int
+		decimalSeparator   string
+		thousandsSeparator string
+		expected           string
+	}{
+		{1234.5678, 2, ".", ",", "1,234.57"},
+		{1234567.89, 1, ",", " ", "1 234 567,9"},
+		{1000000, 0, ".", ",", "1,000,000"},
+		{-1234.5678, 2, ".", ",", "-1,234.57"},
+		{0.5678, 3, ".", ",", "0.568"},
+		{0, 2, ".", ",", "0.00"},
+	}
+
+	for _, test := range tests {
+		result := Format(test.number, test.decimals, test.decimalSeparator, test.thousandsSeparator)
+		if result != test.expected {
+			t.Errorf("Format(%f, %d, %q, %q) = %q, expected %q",
+				test.number, test.decimals, test.decimalSeparator, test.thousandsSeparator, result, test.expected)
+		}
+	}
+}
+
+func TestFormatCompact(t *testing.T) {
+	tests := []struct {
+		number   float64
+		decimals int
+		expected string
+	}{
+		{1234567, 1, "1.2M"},
+		{1234, 2, "1.23K"},
+		{1000000000, 1, "1.0B"},
+		{999, 1, "999.0"},
+		{-1234567, 1, "-1.2M"},
+		{0, 1, "0.0"},
+		{1500, 0, "2K"},
+		{1500000, 0, "2M"},
+		{1500000000, 0, "2B"},
+	}
+
+	for _, test := range tests {
+		result := FormatCompact(test.number, test.decimals)
+		if result != test.expected {
+			t.Errorf("FormatCompact(%f, %d) = %q, expected %q", test.number, test.decimals, result, test.expected)
+		}
+	}
+}
+
+func TestFormatPercentage(t *testing.T) {
+	tests := []struct {
+		number   float64
+		decimals int
+		expected string
+	}{
+		{0.156, 1, "15.6%"},
+		{0.5, 0, "50%"},
+		{1, 2, "100.00%"},
+		{0, 1, "0.0%"},
+		{-0.25, 0, "-25%"},
+		{1.5, 1, "150.0%"},
+	}
+
+	for _, test := range tests {
+		result := FormatPercentage(test.number, test.decimals)
+		if result != test.expected {
+			t.Errorf("FormatPercentage(%f, %d) = %q, expected %q", test.number, test.decimals, result, test.expected)
+		}
+	}
+}
+
+func TestPercent(t *testing.T) {
+	tests := []struct {
+		number   float64
+		total    float64
+		decimals []int
+		expected float64
+	}{
+		{25, 100, []int{}, 25.0},
+		{1, 3, []int{2}, 33.33},
+		{1, 0, []int{}, 0},
+		{0, 100, []int{}, 0},
+		{50, 200, []int{1}, 25.0},
+		{200, 50, []int{}, 400},
+		{-25, 100, []int{}, -25},
+		{25, -100, []int{}, -25},
+	}
+
+	for _, test := range tests {
+		result := Percent(test.number, test.total, test.decimals...)
+		if result != test.expected {
+			t.Errorf("Percent(%f, %f, %v) = %f, expected %f", test.number, test.total, test.decimals, result, test.expected)
+		}
+	}
+}

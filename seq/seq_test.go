@@ -100,7 +100,7 @@ func TestReject(t *testing.T) {
 
 func TestReduce(t *testing.T) {
 	seq := New(1, 2, 3, 4)
-	result := seq.Reduce(func(acc interface{}, n int) interface{} {
+	result := seq.Reduce(func(acc any, n int) any {
 		return acc.(int) + n
 	}, 0)
 	expected := 10

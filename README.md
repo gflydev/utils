@@ -10,9 +10,10 @@ This library provides a comprehensive set of utility functions for Go, organized
 - **Number utilities** (`num`): Functions for number manipulation
 - **Array utilities** (`arr`): Functions for array/slice manipulation
 - **Object utilities** (`obj`): Functions for object/map manipulation
-- **Collection utilities** (`coll`): Functions for collection manipulation
+- **Collection utilities** (`col`): Functions for collection manipulation
 - **Function utilities** (`fn`): Functions for function manipulation
 - **Sequence utilities** (`seq`): Functions for sequence manipulation
+- **Network utilities** (`net`): Functions for HTTP and network operations
 
 ## Installation
 
@@ -102,6 +103,105 @@ result := str.LastIndex("abcabc", "ab") // 3
 
 // Ellipsis - Truncate a string with ellipsis
 result := str.Ellipsis("This is a long text", 10) // "This is..."
+
+// Slugify - Convert a string to a URL-friendly slug
+result := str.Slugify("Hello, World!") // "hello-world"
+
+// ContainsAny - Check if a string contains any of the given substrings
+result := str.ContainsAny("hello world", []string{"hello", "goodbye"}) // true
+
+// ToTitleCase - Convert a string to title case
+result := str.ToTitleCase("hello world") // "Hello World"
+
+// OnlyAlphanumeric - Remove all non-alphanumeric characters from a string
+result := str.OnlyAlphanumeric("Hello, World!") // "HelloWorld"
+
+// Mask - Mask a portion of a string with a character
+result := str.Mask("1234567890", '*', 4, 4) // "1234****90"
+
+// PadLeft - Pad a string on the left to a specified length
+result := str.PadLeft("hello", 10, ' ') // "     hello"
+
+// PadRight - Pad a string on the right to a specified length
+result := str.PadRight("hello", 10, ' ') // "hello     "
+
+// Reverse - Reverse a string
+result := str.Reverse("hello") // "olleh"
+
+// CountWords - Count the number of words in a string
+result := str.CountWords("hello world") // 2
+
+// TruncateWords - Truncate a string to a specified number of words
+result := str.TruncateWords("hello world goodbye", 2) // "hello world..."
+
+// FormatWithCommas - Format a number as a string with commas
+result := str.FormatWithCommas(1234567) // "1,234,567"
+
+// After - Get the substring after the first occurrence of a delimiter
+result := str.After("hello-world", "-") // "world"
+
+// AfterLast - Get the substring after the last occurrence of a delimiter
+result := str.AfterLast("hello-world-goodbye", "-") // "goodbye"
+
+// Before - Get the substring before the first occurrence of a delimiter
+result := str.Before("hello-world", "-") // "hello"
+
+// BeforeLast - Get the substring before the last occurrence of a delimiter
+result := str.BeforeLast("hello-world-goodbye", "-") // "hello-world"
+
+// Between - Get the substring between two delimiters
+result := str.Between("hello [world] goodbye", "[", "]") // "world"
+
+// ContainsAll - Check if a string contains all of the given substrings
+result := str.ContainsAll("hello world", []string{"hello", "world"}) // true
+
+// Finish - Ensure a string ends with a specific suffix
+result := str.Finish("hello", "!") // "hello!"
+
+// Is - Check if a string matches a pattern
+result := str.Is("foo*", "foobar") // true
+
+// IsAscii - Check if a string contains only ASCII characters
+result := str.IsAscii("hello") // true
+
+// Limit - Limit the number of characters in a string
+result := str.Limit("hello world", 5) // "hello..."
+
+// Random - Generate a random string of a specified length
+result := str.Random(10) // e.g., "aB3cD7eF9g"
+
+// ReplaceArray - Replace multiple occurrences of a placeholder with different values
+result := str.ReplaceArray("?", []string{"hello", "world"}, "? ?") // "hello world"
+
+// ReplaceFirst - Replace the first occurrence of a substring
+result := str.ReplaceFirst("hello hello", "hello", "hi") // "hi hello"
+
+// ReplaceLast - Replace the last occurrence of a substring
+result := str.ReplaceLast("hello hello", "hello", "hi") // "hello hi"
+
+// Start - Ensure a string starts with a specific prefix
+result := str.Start("world", "hello ") // "hello world"
+
+// Studly - Convert a string to StudlyCase
+result := str.Studly("hello_world") // "HelloWorld"
+
+// Substr - Get a substring of a string
+result := str.Substr("hello world", 6, 5) // "world"
+
+// Ucfirst - Capitalize the first character of a string
+result := str.Ucfirst("hello") // "Hello"
+
+// Lcfirst - Lowercase the first character of a string
+result := str.Lcfirst("Hello") // "hello"
+
+// Plural - Convert a singular word to its plural form
+result := str.Plural("apple") // "apples"
+
+// Singular - Convert a plural word to its singular form
+result := str.Singular("apples") // "apple"
+
+// Wordwrap - Wrap a string to a given number of characters
+result := str.Wordwrap("hello world", 5, "\n", true) // "hello\nworld"
 ```
 
 ### Number Utilities
@@ -170,6 +270,21 @@ result := num.Pow(2, 3) // 8
 
 // Sqrt - Calculate square root
 result := num.Sqrt(9) // 3
+
+// Ceiling - Alias for Ceil
+result := num.Ceiling(4.3) // 5
+
+// Format - Format a number with a specified number of decimal places
+result := num.Format(123.456, 2) // "123.46"
+
+// FormatCompact - Format a number in a compact form
+result := num.FormatCompact(1234567) // "1.2M"
+
+// FormatPercentage - Format a number as a percentage
+result := num.FormatPercentage(0.1234, 2) // "12.34%"
+
+// Percent - Calculate the percentage of a value relative to a total
+result := num.Percent(25, 100) // 25.0
 ```
 
 ### Array Utilities
@@ -280,6 +395,68 @@ result := arr.Zip([]int{1, 2}, []int{3, 4}) // [][]int{{1, 3}, {2, 4}}
 result := arr.SortBy([]string{"abc", "a", "ab"}, func(s string) int { 
     return len(s) 
 }) // []string{"a", "ab", "abc"}
+
+// Contains - Check if an array contains a specific element
+result := arr.Contains([]int{1, 2, 3, 4}, 3) // true
+
+// Filter - Filter an array based on a predicate function
+result := arr.Filter([]int{1, 2, 3, 4}, func(n int) bool { return n % 2 == 0 }) // []int{2, 4}
+
+// Map - Map an array using a transformation function
+result := arr.Map([]int{1, 2, 3}, func(n int) int { return n * 2 }) // []int{2, 4, 6}
+
+// Find - Find the first element that satisfies a predicate
+result, ok := arr.Find([]int{1, 2, 3, 4}, func(n int) bool { return n > 2 }) // 3, true
+
+// FirstOrDefault - Get the first element or a default value if the array is empty
+result := arr.FirstOrDefault([]int{1, 2, 3}, 0) // 1
+result := arr.FirstOrDefault([]int{}, 42) // 42
+
+// LastOrDefault - Get the last element or a default value if the array is empty
+result := arr.LastOrDefault([]int{1, 2, 3}, 0) // 3
+result := arr.LastOrDefault([]int{}, 42) // 42
+
+// Prepend - Add elements to the beginning of an array
+result := arr.Prepend([]int{3, 4}, 1, 2) // []int{1, 2, 3, 4}
+
+// Unique - Remove duplicates from an array
+result := arr.Unique([]int{1, 2, 2, 3, 3, 3}) // []int{1, 2, 3}
+
+// SortedCopy - Create a sorted copy of an array
+result := arr.SortedCopy([]int{3, 1, 2}, func(a, b int) bool { return a < b }) // []int{1, 2, 3}
+
+// Reduce - Reduce an array to a single value
+result := arr.Reduce([]int{1, 2, 3}, 0, func(acc, item int) int { return acc + item }) // 6
+
+// GroupBy - Group array elements by a key function
+result := arr.GroupBy([]string{"one", "two", "three"}, func(s string) int { return len(s) })
+// map[int][]string{3: {"one", "two"}, 5: {"three"}}
+
+// MapMerge - Merge multiple maps into one
+result := arr.MapMerge(map[string]int{"a": 1}, map[string]int{"b": 2}) // map[string]int{"a": 1, "b": 2}
+
+// MapKeys - Get the keys of a map
+result := arr.MapKeys(map[string]int{"a": 1, "b": 2}) // []string{"a", "b"}
+
+// MapValues - Get the values of a map
+result := arr.MapValues(map[string]int{"a": 1, "b": 2}) // []int{1, 2}
+
+// MapValuesFn - Transform the values of a map
+result := arr.MapValuesFn(map[string]int{"a": 1, "b": 2}, func(v int) int { return v * 2 })
+// map[string]int{"a": 2, "b": 4}
+
+// MapGetOrDefault - Get a value from a map or a default if the key doesn't exist
+result := arr.MapGetOrDefault(map[string]int{"a": 1}, "a", 0) // 1
+result := arr.MapGetOrDefault(map[string]int{"a": 1}, "b", 0) // 0
+
+// SetContains - Check if a set contains an element
+result := arr.SetContains(map[string]struct{}{"a": {}, "b": {}}, "a") // true
+
+// SetToSlice - Convert a set to a slice
+result := arr.SetToSlice(map[string]struct{}{"a": {}, "b": {}}) // []string{"a", "b"}
+
+// SliceToSet - Convert a slice to a set
+result := arr.SliceToSet([]string{"a", "b", "a"}) // map[string]struct{}{"a": {}, "b": {}}
 ```
 
 ### Object Utilities
@@ -288,10 +465,10 @@ result := arr.SortBy([]string{"abc", "a", "ab"}, func(s string) int {
 import "github.com/gflydev/utils/obj"
 
 // Assign
-result := obj.Assign(map[string]interface{}{"a": 1}, map[string]interface{}{"b": 2}) // map[string]interface{}{"a": 1, "b": 2}
+result := obj.Assign(map[string]any{"a": 1}, map[string]any{"b": 2}) // map[string]any{"a": 1, "b": 2}
 
 // Clone
-result := obj.Clone(map[string]interface{}{"a": 1, "b": 2}) // map[string]interface{}{"a": 1, "b": 2}
+result := obj.Clone(map[string]any{"a": 1, "b": 2}) // map[string]any{"a": 1, "b": 2}
 
 // Entries
 result := obj.Entries(map[string]int{"a": 1, "b": 2}) // []obj.Entry[string, int]{{"a", 1}, {"b", 2}}
@@ -303,13 +480,13 @@ result := obj.FromEntries([]obj.Entry[string, int]{{"a", 1}, {"b", 2}}) // map[s
 result, ok := obj.Get[int](map[string]any{"a": map[string]any{"b": 1}}, "a.b") // 1, true
 
 // Has
-result := obj.Has(map[string]interface{}{"a": 1, "b": 2}, "a") // true
+result := obj.Has(map[string]any{"a": 1, "b": 2}, "a") // true
 
 // Keys
-result := obj.Keys(map[string]interface{}{"a": 1, "b": 2}) // []string{"a", "b"}
+result := obj.Keys(map[string]any{"a": 1, "b": 2}) // []string{"a", "b"}
 
 // KeysSorted - Get sorted keys of an object
-result := obj.KeysSorted(map[string]interface{}{"b": 2, "a": 1}) // []string{"a", "b"}
+result := obj.KeysSorted(map[string]any{"b": 2, "a": 1}) // []string{"a", "b"}
 
 // MapValues
 result := obj.MapValues(map[string]int{"a": 1, "b": 2}, func(v int) int { return v * 2 }) // map[string]int{"a": 2, "b": 4}
@@ -350,11 +527,11 @@ result := obj.IsEqual(map[string]int{"a": 1}, map[string]int{"a": 1}) // true
 ```go
 import (
     "fmt"
-    "github.com/gflydev/utils/coll"
+    "github.com/gflydev/utils/col"
 )
 
 // CountBy
-result := coll.CountBy([]int{1, 2, 3, 4}, func(n int) string {
+result := col.CountBy([]int{1, 2, 3, 4}, func(n int) string {
     if n % 2 == 0 {
         return "even"
     }
@@ -362,25 +539,25 @@ result := coll.CountBy([]int{1, 2, 3, 4}, func(n int) string {
 }) // map[string]int{"odd": 2, "even": 2}
 
 // Every
-result := coll.Every([]int{2, 4, 6}, func(n int) bool { return n % 2 == 0 }) // true
+result := col.Every([]int{2, 4, 6}, func(n int) bool { return n % 2 == 0 }) // true
 
 // Filter
-result := coll.Filter([]int{1, 2, 3, 4}, func(n int) bool { return n % 2 == 0 }) // []int{2, 4}
+result := col.Filter([]int{1, 2, 3, 4}, func(n int) bool { return n % 2 == 0 }) // []int{2, 4}
 
 // Find
-result, ok := coll.Find([]int{1, 2, 3, 4}, func(n int) bool { return n > 2 }) // 3, true
+result, ok := col.Find([]int{1, 2, 3, 4}, func(n int) bool { return n > 2 }) // 3, true
 
 // FindLast - Find the last element that satisfies the predicate
-result, ok := coll.FindLast([]int{1, 2, 3, 4, 3}, func(n int) bool { return n > 2 }) // 3, true
+result, ok := col.FindLast([]int{1, 2, 3, 4, 3}, func(n int) bool { return n > 2 }) // 3, true
 
 // ForEach
-coll.ForEach([]int{1, 2, 3}, func(n int) { fmt.Println(n) })
+col.ForEach([]int{1, 2, 3}, func(n int) { fmt.Println(n) })
 
 // ForEachWithIndex - Iterate with index
-coll.ForEachWithIndex([]int{1, 2, 3}, func(n, i int) { fmt.Printf("%d: %d\n", i, n) })
+col.ForEachWithIndex([]int{1, 2, 3}, func(n, i int) { fmt.Printf("%d: %d\n", i, n) })
 
 // GroupBy
-result := coll.GroupBy([]int{1, 2, 3, 4}, func(n int) string {
+result := col.GroupBy([]int{1, 2, 3, 4}, func(n int) string {
     if n % 2 == 0 {
         return "even"
     }
@@ -388,55 +565,258 @@ result := coll.GroupBy([]int{1, 2, 3, 4}, func(n int) string {
 }) // map[string][]int{"odd": {1, 3}, "even": {2, 4}}
 
 // KeyBy - Create an object from an array using a key function
-result := coll.KeyBy([]string{"a", "ab", "abc"}, func(s string) int { return len(s) }) // map[int]string{1: "a", 2: "ab", 3: "abc"}
+result := col.KeyBy([]string{"a", "ab", "abc"}, func(s string) int { return len(s) }) // map[int]string{1: "a", 2: "ab", 3: "abc"}
 
 // Map
-result := coll.Map([]int{1, 2, 3}, func(n int) int { return n * 2 }) // []int{2, 4, 6}
+result := col.Map([]int{1, 2, 3}, func(n int) int { return n * 2 }) // []int{2, 4, 6}
 
 // MapWithIndex - Map with index
-result := coll.MapWithIndex([]int{1, 2, 3}, func(n, i int) int { return n * i }) // []int{0, 2, 6}
+result := col.MapWithIndex([]int{1, 2, 3}, func(n, i int) int { return n * i }) // []int{0, 2, 6}
 
 // Partition
-result := coll.Partition([]int{1, 2, 3, 4}, func(n int) bool { return n % 2 == 0 }) // [][]int{{2, 4}, {1, 3}}
+result := col.Partition([]int{1, 2, 3, 4}, func(n int) bool { return n % 2 == 0 }) // [][]int{{2, 4}, {1, 3}}
 
 // Reduce
-result := coll.Reduce([]int{1, 2, 3}, func(sum, n int) int { return sum + n }, 0) // 6
+result := col.Reduce([]int{1, 2, 3}, func(sum, n int) int { return sum + n }, 0) // 6
 
 // ReduceRight - Reduce from right to left
-result := coll.ReduceRight([]int{1, 2, 3}, func(sum, n int) int { return sum - n }, 0) // -6
+result := col.ReduceRight([]int{1, 2, 3}, func(sum, n int) int { return sum - n }, 0) // -6
 
 // Reject
-result := coll.Reject([]int{1, 2, 3, 4}, func(n int) bool { return n % 2 == 0 }) // []int{1, 3}
+result := col.Reject([]int{1, 2, 3, 4}, func(n int) bool { return n % 2 == 0 }) // []int{1, 3}
 
 // Sample
-result, ok := coll.Sample([]int{1, 2, 3, 4}) // a random element from the collection
+result, ok := col.Sample([]int{1, 2, 3, 4}) // a random element from the collection
 
 // SampleSize - Get n random elements
-result := coll.SampleSize([]int{1, 2, 3, 4, 5}, 2) // e.g., []int{3, 1}
+result := col.SampleSize([]int{1, 2, 3, 4, 5}, 2) // e.g., []int{3, 1}
 
 // Size - Get the size of a collection
-result := coll.Size([]int{1, 2, 3}) // 3
+result := col.Size([]int{1, 2, 3}) // 3
 
 // Some
-result := coll.Some([]int{1, 2, 3, 4}, func(n int) bool { return n > 3 }) // true
+result := col.Some([]int{1, 2, 3, 4}, func(n int) bool { return n > 3 }) // true
 
 // SortBy - Sort a collection using an iteratee function
-result := coll.SortBy([]string{"abc", "a", "ab"}, func(s string) int { return len(s) }) // []string{"a", "ab", "abc"}
+result := col.SortBy([]string{"abc", "a", "ab"}, func(s string) int { return len(s) }) // []string{"a", "ab", "abc"}
 
 // OrderBy - Sort a collection with direction control
-result := coll.OrderBy([]int{3, 1, 2}, func(n int) int { return n }, false) // []int{3, 2, 1}
+result := col.OrderBy([]int{3, 1, 2}, func(n int) int { return n }, false) // []int{3, 2, 1}
 
 // ForEachMap - Iterate over a map
-coll.ForEachMap(map[string]int{"a": 1, "b": 2}, func(v int, k string) { fmt.Printf("%s: %d\n", k, v) })
+col.ForEachMap(map[string]int{"a": 1, "b": 2}, func(v int, k string) { fmt.Printf("%s: %d\n", k, v) })
 
 // MapMap - Map over a map's values
-result := coll.MapMap(map[string]int{"a": 1, "b": 2}, func(v int, k string) string { return fmt.Sprintf("%s-%d", k, v) }) // []string{"a-1", "b-2"}
+result := col.MapMap(map[string]int{"a": 1, "b": 2}, func(v int, k string) string { return fmt.Sprintf("%s-%d", k, v) }) // []string{"a-1", "b-2"}
 
 // FilterMap - Filter a map
-result := coll.FilterMap(map[string]int{"a": 1, "b": 2, "c": 3}, func(v int, k string) bool { return v > 1 }) // map[string]int{"b": 2, "c": 3}
+result := col.FilterMap(map[string]int{"a": 1, "b": 2, "c": 3}, func(v int, k string) bool { return v > 1 }) // map[string]int{"b": 2, "c": 3}
 
 // ReduceMap - Reduce a map
-result := coll.ReduceMap(map[string]int{"a": 1, "b": 2, "c": 3}, func(acc int, v int, k string) int { return acc + v }, 0) // 6
+result := col.ReduceMap(map[string]int{"a": 1, "b": 2, "c": 3}, func(acc int, v int, k string) int { return acc + v }, 0) // 6
+
+// Avg - Calculate the average of a collection
+result := col.Avg([]int{1, 2, 3, 4, 5}) // 3.0
+
+// Chunk - Split a collection into chunks of a given size
+result := col.Chunk([]int{1, 2, 3, 4, 5}, 2) // [][]int{{1, 2}, {3, 4}, {5}}
+
+// Contains - Check if a collection contains a specific element
+result := col.Contains([]int{1, 2, 3, 4}, 3) // true
+
+// Reverse - Reverse the order of elements in a collection
+result := col.Reverse([]int{1, 2, 3, 4}) // []int{4, 3, 2, 1}
+
+// Slice - Get a slice of a collection
+result := col.Slice([]int{1, 2, 3, 4, 5}, 1, 3) // []int{2, 3, 4}
+
+// SliceWithLength - Get a slice of a collection with a specified length
+result := col.SliceWithLength([]int{1, 2, 3, 4, 5}, 1, 3) // []int{2, 3, 4}
+
+// Shuffle - Randomize the order of elements in a collection
+result := col.Shuffle([]int{1, 2, 3, 4, 5}) // e.g., []int{3, 1, 5, 2, 4}
+
+// Collapse - Flatten a collection of arrays into a single array
+result := col.Collapse([][]int{{1, 2}, {3, 4}}) // []int{1, 2, 3, 4}
+
+// CrossJoin - Cross join multiple collections
+result := col.CrossJoin([]int{1, 2}, []string{"a", "b"}) // [][]any{{1, "a"}, {1, "b"}, {2, "a"}, {2, "b"}}
+
+// Diff - Get the difference between two collections
+result := col.Diff([]int{1, 2, 3, 4}, []int{2, 4, 5, 6}) // []int{1, 3}
+
+// DiffAssoc - Get the difference between two collections with keys
+result := col.DiffAssoc(map[string]int{"a": 1, "b": 2}, map[string]int{"b": 2, "c": 3}) // map[string]int{"a": 1}
+
+// DiffKeys - Get the difference between two collections by keys
+result := col.DiffKeys(map[string]int{"a": 1, "b": 2}, map[string]int{"b": 3, "c": 4}) // map[string]int{"a": 1}
+
+// Except - Get all elements except those with specified keys
+result := col.Except(map[string]int{"a": 1, "b": 2, "c": 3}, []string{"a", "c"}) // map[string]int{"b": 2}
+
+// First - Get the first element of a collection
+result, ok := col.First([]int{1, 2, 3}) // 1, true
+
+// FirstOrDefault - Get the first element or a default value if the collection is empty
+result := col.FirstOrDefault([]int{1, 2, 3}, 0) // 1
+result := col.FirstOrDefault([]int{}, 42) // 42
+
+// FlatMap - Map a collection and flatten the result
+result := col.FlatMap([]string{"a,b", "c,d"}, func(s string) []string { return strings.Split(s, ",") }) // []string{"a", "b", "c", "d"}
+
+// Flatten - Flatten a nested collection
+result := col.Flatten([][]int{{1, 2}, {3, 4}}) // []int{1, 2, 3, 4}
+
+// Flip - Swap the keys and values of a map
+result := col.Flip(map[string]int{"a": 1, "b": 2}) // map[int]string{1: "a", 2: "b"}
+
+// Forget - Remove an element from a map by key
+result := col.Forget(map[string]int{"a": 1, "b": 2}, "a") // map[string]int{"b": 2}
+
+// Get - Get a value from a map by key with a default value
+result := col.Get(map[string]int{"a": 1, "b": 2}, "c", 3) // 3
+
+// Has - Check if a map has a specific key
+result := col.Has(map[string]int{"a": 1, "b": 2}, "a") // true
+
+// Implode - Join the elements of a collection with a string
+result := col.Implode([]int{1, 2, 3}, "-") // "1-2-3"
+
+// Intersect - Get the intersection of two collections
+result := col.Intersect([]int{1, 2, 3}, []int{2, 3, 4}) // []int{2, 3}
+
+// IntersectByKeys - Get the intersection of two maps by keys
+result := col.IntersectByKeys(map[string]int{"a": 1, "b": 2}, map[string]int{"b": 3, "c": 4}) // map[string]int{"b": 2}
+
+// IsEmpty - Check if a collection is empty
+result := col.IsEmpty([]int{}) // true
+
+// IsNotEmpty - Check if a collection is not empty
+result := col.IsNotEmpty([]int{1, 2, 3}) // true
+
+// Keys - Get the keys of a map
+result := col.Keys(map[string]int{"a": 1, "b": 2}) // []string{"a", "b"}
+
+// Last - Get the last element of a collection
+result, ok := col.Last([]int{1, 2, 3}) // 3, true
+
+// LastOrDefault - Get the last element or a default value if the collection is empty
+result := col.LastOrDefault([]int{1, 2, 3}, 0) // 3
+result := col.LastOrDefault([]int{}, 42) // 42
+
+// Max - Get the maximum value in a collection
+result := col.Max([]int{1, 5, 3, 2, 4}) // 5
+
+// Merge - Merge two maps
+result := col.Merge(map[string]int{"a": 1}, map[string]int{"b": 2}) // map[string]int{"a": 1, "b": 2}
+
+// Min - Get the minimum value in a collection
+result := col.Min([]int{5, 3, 1, 4, 2}) // 1
+
+// Only - Get a subset of a map with only the specified keys
+result := col.Only(map[string]int{"a": 1, "b": 2, "c": 3}, []string{"a", "c"}) // map[string]int{"a": 1, "c": 3}
+
+// Pad - Pad a collection to a specified length with a value
+result := col.Pad([]int{1, 2, 3}, 5, 0) // []int{1, 2, 3, 0, 0}
+
+// Pluck - Extract a specific key from a collection of maps
+type User struct { Name string; Age int }
+users := []User{{"Alice", 25}, {"Bob", 30}}
+result := col.Pluck(users, func(u User) string { return u.Name }) // []string{"Alice", "Bob"}
+
+// Prepend - Add elements to the beginning of a collection
+result := col.Prepend([]int{3, 4}, 1, 2) // []int{1, 2, 3, 4}
+
+// Pull - Remove and return an element from a collection by key
+result, ok := col.Pull([]int{1, 2, 3, 4}, 2) // 3, true
+
+// Push - Add an element to the end of a collection
+result := col.Push([]int{1, 2, 3}, 4) // []int{1, 2, 3, 4}
+
+// Put - Set a value in a map
+result := col.Put(map[string]int{"a": 1}, "b", 2) // map[string]int{"a": 1, "b": 2}
+
+// Random - Get a random element from a collection
+result, ok := col.Random([]int{1, 2, 3, 4, 5}) // e.g., 3, true
+
+// RandomOrDefault - Get a random element or a default value if the collection is empty
+result := col.RandomOrDefault([]int{1, 2, 3, 4, 5}, 0) // e.g., 3
+result := col.RandomOrDefault([]int{}, 42) // 42
+
+// Search - Search for a value in a collection and return its key
+result, ok := col.Search([]int{1, 2, 3, 4}, 3) // 2, true
+
+// Shift - Remove and return the first element of a collection
+result, rest, ok := col.Shift([]int{1, 2, 3}) // 1, []int{2, 3}, true
+
+// Sort - Sort a collection
+result := col.Sort([]int{3, 1, 4, 2}) // []int{1, 2, 3, 4}
+
+// SortByDesc - Sort a collection in descending order
+result := col.SortByDesc([]int{1, 2, 3, 4}) // []int{4, 3, 2, 1}
+
+// Splice - Remove and return a portion of a collection
+result, rest := col.Splice([]int{1, 2, 3, 4, 5}, 1, 3) // []int{2, 3, 4}, []int{1, 5}
+
+// Split - Split a collection into groups of a given size
+result := col.Split([]int{1, 2, 3, 4, 5, 6}, 2) // [][]int{{1, 2, 3}, {4, 5, 6}}
+
+// Sum - Calculate the sum of a collection
+result := col.Sum([]int{1, 2, 3, 4, 5}) // 15
+
+// Take - Take the first n elements of a collection
+result := col.Take([]int{1, 2, 3, 4, 5}, 3) // []int{1, 2, 3}
+
+// Tap - Pass a collection to a callback and return the collection
+result := col.Tap([]int{1, 2, 3}, func(arr []int) { fmt.Println(arr) }) // []int{1, 2, 3}
+
+// Unique - Remove duplicates from a collection
+result := col.Unique([]int{1, 2, 2, 3, 3, 3}) // []int{1, 2, 3}
+
+// UniqueBy - Remove duplicates from a collection using a key function
+result := col.UniqueBy([]int{1, 2, 3, 4, 5}, func(n int) int { return n % 3 }) // []int{1, 2, 3}
+
+// Values - Get the values of a map
+result := col.Values(map[string]int{"a": 1, "b": 2}) // []int{1, 2}
+
+// Zip - Combine multiple collections
+result := col.Zip([]int{1, 2}, []string{"a", "b"}) // [][]any{{1, "a"}, {2, "b"}}
+
+// Unless - Execute a callback unless a condition is true
+result := col.Unless(true, []int{1, 2, 3}, func(arr []int) []int { return append(arr, 4) }) // []int{1, 2, 3}
+
+// UnlessEmpty - Execute a callback unless a collection is empty
+result := col.UnlessEmpty([]int{}, []int{1, 2, 3}, func(arr []int) []int { return append(arr, 4) }) // []int{1, 2, 3}
+
+// UnlessNotEmpty - Execute a callback unless a collection is not empty
+result := col.UnlessNotEmpty([]int{1, 2, 3}, []int{}, func(arr []int) []int { return append(arr, 4) }) // []int{}
+
+// When - Execute a callback when a condition is true
+result := col.When(true, []int{1, 2, 3}, func(arr []int) []int { return append(arr, 4) }) // []int{1, 2, 3, 4}
+
+// WhenEmpty - Execute a callback when a collection is empty
+result := col.WhenEmpty([]int{}, []int{}, func(arr []int) []int { return append(arr, 1) }) // []int{1}
+
+// WhenNotEmpty - Execute a callback when a collection is not empty
+result := col.WhenNotEmpty([]int{1, 2, 3}, []int{1, 2, 3}, func(arr []int) []int { return append(arr, 4) }) // []int{1, 2, 3, 4}
+
+// Where - Filter a collection by a key/value pair
+result := col.Where([]map[string]int{{"id": 1, "value": 10}, {"id": 2, "value": 20}}, "id", 1) // []map[string]int{{"id": 1, "value": 10}}
+
+// WhereIn - Filter a collection by a key/value pair with multiple values
+result := col.WhereIn([]map[string]int{{"id": 1}, {"id": 2}, {"id": 3}}, "id", []int{1, 3}) // []map[string]int{{"id": 1}, {"id": 3}}
+
+// WhereNotIn - Filter a collection by a key/value pair with excluded values
+result := col.WhereNotIn([]map[string]int{{"id": 1}, {"id": 2}, {"id": 3}}, "id", []int{1, 3}) // []map[string]int{{"id": 2}}
+
+// ContainsFn - Check if a collection contains an element that satisfies a predicate
+result := col.ContainsFn([]int{1, 2, 3, 4}, func(n int) bool { return n > 3 }) // true
+
+// Count - Count the number of elements in a collection
+result := col.Count([]int{1, 2, 3, 4, 5}) // 5
+
+// Each - Iterate over a collection
+result := col.Each([]int{1, 2, 3}, func(n int) bool { fmt.Println(n); return true }) // []int{1, 2, 3}
 ```
 
 ### Function Utilities
@@ -634,13 +1014,13 @@ s.OrderBy(func(n int) int { return n }, false).Value() // []int{4, 3, 2, 1}
 s.Join("-") // "1-2-3-4"
 
 // MapTo - Map to a different type
-result := s.MapTo(func(n int) string { return fmt.Sprintf("%d", n) }).Value() // []interface{}{"1", "2", "3", "4"}
+result := s.MapTo(func(n int) string { return fmt.Sprintf("%d", n) }).Value() // []any{"1", "2", "3", "4"}
 
 // Reject - Filter out elements that satisfy the predicate
 result := s.Reject(func(n int) bool { return n % 2 == 0 }).Value() // []int{1, 3}
 
 // Reduce - Reduce the sequence to a single value
-result := s.Reduce(func(acc interface{}, n int) interface{} { 
+result := s.Reduce(func(acc any, n int) any { 
     return acc.(int) + n 
 }, 0) // 10
 
@@ -649,10 +1029,62 @@ s.ForEach(func(n int) { fmt.Println(n) }) // Prints 1, 2, 3, 4
 
 // Flatten - Flatten a sequence of sequences
 nestedSeq := seq.New(seq.New(1, 2), seq.New(3, 4))
-result := nestedSeq.Flatten().Value() // []interface{}{1, 2, 3, 4}
+result := nestedSeq.Flatten().Value() // []any{1, 2, 3, 4}
 
 // Concat - Concatenate sequences
 result := s.Concat(seq.New(5, 6)).Value() // []int{1, 2, 3, 4, 5, 6}
+```
+
+### Network Utilities
+
+```go
+import "github.com/gflydev/utils/net"
+
+// BuildURL - Build a URL with query parameters
+baseURL := "https://api.example.com/users"
+params := map[string]string{"page": "1", "limit": "10"}
+url, err := net.BuildURL(baseURL, params) // "https://api.example.com/users?limit=10&page=1"
+
+// IsSuccessStatusCode - Check if an HTTP status code indicates success
+result := net.IsSuccessStatusCode(200) // true
+result := net.IsSuccessStatusCode(404) // false
+
+// ParseQueryParams - Parse query parameters from a query string
+params, err := net.ParseQueryParams("page=1&limit=10") // map[string]string{"page": "1", "limit": "10"}
+
+// CreateHTTPClient - Create a customized HTTP client
+client := net.CreateHTTPClient(10*time.Second, 100, 10, 100)
+
+// GetJSON - Make a GET request and parse the JSON response
+type User struct {
+    ID   int    `json:"id"`
+    Name string `json:"name"`
+}
+var user User
+err := net.GetJSON("https://api.example.com/users/1", &user, nil)
+
+// PostJSON - Make a POST request with JSON body and parse the JSON response
+payload := map[string]string{"name": "John Doe"}
+var response User
+err := net.PostJSON("https://api.example.com/users", payload, &response, nil)
+
+// PutJSON - Make a PUT request with JSON body and parse the JSON response
+payload := map[string]string{"name": "John Doe"}
+var response User
+err := net.PutJSON("https://api.example.com/users/1", payload, &response, nil)
+
+// DeleteJSON - Make a DELETE request and parse the JSON response
+var response map[string]string
+err := net.DeleteJSON("https://api.example.com/users/1", &response, nil)
+
+// DownloadFile - Download a file from a URL
+data, err := net.DownloadFile("https://example.com/file.pdf", 30)
+
+// UploadFile - Upload a file to a URL
+filePath := "/path/to/file.jpg"
+additionalFields := map[string]string{"description": "Profile picture"}
+headers := map[string]string{"Authorization": "Bearer token"}
+response, err := net.UploadFile("https://api.example.com/upload", "file", filePath, additionalFields, headers)
 ```
 
 ## License

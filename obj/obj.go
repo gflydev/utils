@@ -9,7 +9,18 @@ import (
 
 // Assign assigns properties of source objects to the destination object.
 // It's similar to Object.assign() in JavaScript.
-// Example: Assign(map[string]any{"a": 1}, map[string]any{"b": 2}) -> map[string]any{"a": 1, "b": 2}
+//
+// Parameters:
+//   - dest: The destination map to which properties will be assigned
+//   - sources: One or more source maps whose properties will be assigned to the destination
+//
+// Returns:
+//   - map[K]V: A new map containing all properties from destination and source maps
+//
+// Example:
+//
+//	result := Assign(map[string]any{"a": 1}, map[string]any{"b": 2})
+//	// result is map[string]any{"a": 1, "b": 2}
 func Assign[K comparable, V any](dest map[K]V, sources ...map[K]V) map[K]V {
 	result := make(map[K]V)
 
@@ -29,7 +40,18 @@ func Assign[K comparable, V any](dest map[K]V, sources ...map[K]V) map[K]V {
 }
 
 // Clone creates a shallow clone of an object.
-// Example: Clone(map[string]any{"a": 1, "b": 2}) -> map[string]any{"a": 1, "b": 2}
+//
+// Parameters:
+//   - obj: The map to clone
+//
+// Returns:
+//   - map[K]V: A new map with the same key-value pairs as the original
+//
+// Example:
+//
+//	original := map[string]any{"a": 1, "b": 2}
+//	clone := Clone(original)
+//	// clone is map[string]any{"a": 1, "b": 2}
 func Clone[K comparable, V any](obj map[K]V) map[K]V {
 	result := make(map[K]V, len(obj))
 	for k, v := range obj {
@@ -38,13 +60,24 @@ func Clone[K comparable, V any](obj map[K]V) map[K]V {
 	return result
 }
 
-// Entry Entries returns an array of key-value pairs.
-// Example: Entries(map[string]int{"a": 1, "b": 2}) -> []Entry[string, int]{{"a", 1}, {"b", 2}}
+// Entry represents a key-value pair from a map.
 type Entry[K comparable, V any] struct {
 	Key   K
 	Value V
 }
 
+// Entries returns an array of key-value pairs from a map.
+//
+// Parameters:
+//   - obj: The map to convert to entries
+//
+// Returns:
+//   - []Entry[K, V]: A slice of key-value pairs
+//
+// Example:
+//
+//	entries := Entries(map[string]int{"a": 1, "b": 2})
+//	// entries is []Entry[string, int]{{"a", 1}, {"b", 2}}
 func Entries[K comparable, V any](obj map[K]V) []Entry[K, V] {
 	result := make([]Entry[K, V], 0, len(obj))
 	for k, v := range obj {
@@ -54,7 +87,18 @@ func Entries[K comparable, V any](obj map[K]V) []Entry[K, V] {
 }
 
 // FromEntries returns an object composed from key-value pairs.
-// Example: FromEntries([]Entry[string, int]{{"a", 1}, {"b", 2}}) -> map[string]int{"a": 1, "b": 2}
+//
+// Parameters:
+//   - entries: A slice of key-value pairs
+//
+// Returns:
+//   - map[K]V: A map constructed from the key-value pairs
+//
+// Example:
+//
+//	pairs := []Entry[string, int]{{"a", 1}, {"b", 2}}
+//	result := FromEntries(pairs)
+//	// result is map[string]int{"a": 1, "b": 2}
 func FromEntries[K comparable, V any](entries []Entry[K, V]) map[K]V {
 	result := make(map[K]V, len(entries))
 	for _, entry := range entries {
@@ -63,8 +107,21 @@ func FromEntries[K comparable, V any](entries []Entry[K, V]) map[K]V {
 	return result
 }
 
-// Get retrieves a value from a nested map using dot notation path
-// Example: Get(map[string]interface{}{"a": map[string]interface{}{"b": 2}}, "a.b") -> 2
+// Get retrieves a value from a nested map using dot notation path.
+//
+// Parameters:
+//   - obj: The map to retrieve the value from
+//   - path: A dot-separated path to the desired value (e.g., "a.b.c")
+//
+// Returns:
+//   - T: The value at the specified path, converted to type T
+//   - bool: True if the value was found and successfully converted, false otherwise
+//
+// Example:
+//
+//	nested := map[string]any{"a": map[string]any{"b": 2}}
+//	value, ok := Get[int](nested, "a.b")
+//	// value is 2, ok is true
 func Get[T any](obj map[string]any, path string) (T, bool) {
 	var zero T
 
@@ -101,15 +158,36 @@ func Get[T any](obj map[string]any, path string) (T, bool) {
 	return result, true
 }
 
-// Has checks if path is a direct property of object.
-// Example: Has(map[string]any{"a": 1, "b": 2}, "a") -> true
+// Has checks if a key is a direct property of an object.
+//
+// Parameters:
+//   - obj: The map to check
+//   - key: The key to look for
+//
+// Returns:
+//   - bool: True if the key exists in the map, false otherwise
+//
+// Example:
+//
+//	exists := Has(map[string]any{"a": 1, "b": 2}, "a")
+//	// exists is true
 func Has[K comparable, V any](obj map[K]V, key K) bool {
 	_, ok := obj[key]
 	return ok
 }
 
 // Keys returns an array of object's own enumerable property names.
-// Example: Keys(map[string]any{"a": 1, "b": 2}) -> []string{"a", "b"}
+//
+// Parameters:
+//   - obj: The map whose keys will be returned
+//
+// Returns:
+//   - []K: A slice containing all the keys from the map
+//
+// Example:
+//
+//	keys := Keys(map[string]any{"a": 1, "b": 2})
+//	// keys contains "a" and "b" (order not guaranteed)
 func Keys[K comparable, V any](obj map[K]V) []K {
 	result := make([]K, 0, len(obj))
 	for k := range obj {
@@ -119,7 +197,17 @@ func Keys[K comparable, V any](obj map[K]V) []K {
 }
 
 // KeysSorted returns a sorted array of object's own enumerable property names.
-// Example: KeysSorted(map[string]any{"b": 2, "a": 1}) -> []string{"a", "b"}
+//
+// Parameters:
+//   - obj: The map whose keys will be returned in sorted order
+//
+// Returns:
+//   - []K: A slice containing all the keys from the map, sorted
+//
+// Example:
+//
+//	keys := KeysSorted(map[string]any{"b": 2, "a": 1})
+//	// keys is []string{"a", "b"}
 func KeysSorted[K comparable, V any](obj map[K]V) []K {
 	keys := Keys(obj)
 
@@ -139,7 +227,18 @@ func KeysSorted[K comparable, V any](obj map[K]V) []K {
 }
 
 // MapValues creates an object with the same keys as object and values generated by running each property through iteratee.
-// Example: MapValues(map[string]int{"a": 1, "b": 2}, func(v int) int { return v * 2 }) -> map[string]int{"a": 2, "b": 4}
+//
+// Parameters:
+//   - obj: The source map
+//   - iteratee: A function that transforms each value in the map
+//
+// Returns:
+//   - map[K]R: A new map with the same keys but transformed values
+//
+// Example:
+//
+//	doubled := MapValues(map[string]int{"a": 1, "b": 2}, func(v int) int { return v * 2 })
+//	// doubled is map[string]int{"a": 2, "b": 4}
 func MapValues[K comparable, V any, R any](obj map[K]V, iteratee func(V) R) map[K]R {
 	result := make(map[K]R, len(obj))
 	for k, v := range obj {
@@ -149,7 +248,18 @@ func MapValues[K comparable, V any, R any](obj map[K]V, iteratee func(V) R) map[
 }
 
 // MapKeys creates an object with keys generated by running the property names of object through iteratee.
-// Example: MapKeys(map[string]int{"a": 1, "b": 2}, func(k string) string { return k + "x" }) -> map[string]int{"ax": 1, "bx": 2}
+//
+// Parameters:
+//   - obj: The source map
+//   - iteratee: A function that transforms each key in the map
+//
+// Returns:
+//   - map[R]V: A new map with transformed keys and the original values
+//
+// Example:
+//
+//	transformed := MapKeys(map[string]int{"a": 1, "b": 2}, func(k string) string { return k + "x" })
+//	// transformed is map[string]int{"ax": 1, "bx": 2}
 func MapKeys[K comparable, V any, R comparable](obj map[K]V, iteratee func(K) R) map[R]V {
 	result := make(map[R]V, len(obj))
 	for k, v := range obj {
@@ -160,7 +270,18 @@ func MapKeys[K comparable, V any, R comparable](obj map[K]V, iteratee func(K) R)
 
 // Merge merges properties of source objects into the destination object.
 // Note: This is a simplified version that doesn't do deep merging due to Go's type system limitations.
-// Example: Merge(map[string]any{"a": 1}, map[string]any{"b": 2}) -> map[string]any{"a": 1, "b": 2}
+//
+// Parameters:
+//   - dest: The destination map
+//   - sources: One or more source maps to merge into the destination
+//
+// Returns:
+//   - map[K]V: A new map containing all properties from destination and source maps
+//
+// Example:
+//
+//	result := Merge(map[string]any{"a": 1}, map[string]any{"b": 2})
+//	// result is map[string]any{"a": 1, "b": 2}
 func Merge[K comparable, V any](dest map[K]V, sources ...map[K]V) map[K]V {
 	result := Clone(dest)
 
@@ -174,7 +295,18 @@ func Merge[K comparable, V any](dest map[K]V, sources ...map[K]V) map[K]V {
 }
 
 // Omit creates an object composed of the object properties not included in the keys.
-// Example: Omit(map[string]int{"a": 1, "b": 2, "c": 3}, "a", "c") -> map[string]int{"b": 2}
+//
+// Parameters:
+//   - obj: The source map
+//   - keys: The keys to omit from the resulting map
+//
+// Returns:
+//   - map[K]V: A new map with all properties from the original except those specified in keys
+//
+// Example:
+//
+//	result := Omit(map[string]int{"a": 1, "b": 2, "c": 3}, "a", "c")
+//	// result is map[string]int{"b": 2}
 func Omit[K comparable, V any](obj map[K]V, keys ...K) map[K]V {
 	result := make(map[K]V)
 
@@ -195,7 +327,18 @@ func Omit[K comparable, V any](obj map[K]V, keys ...K) map[K]V {
 }
 
 // OmitBy creates an object composed of the object properties for which predicate returns falsey.
-// Example: OmitBy(map[string]int{"a": 1, "b": 2, "c": 3}, func(v int) bool { return v > 2 }) -> map[string]int{"a": 1, "b": 2}
+//
+// Parameters:
+//   - obj: The source map
+//   - predicate: A function that returns true for values to omit
+//
+// Returns:
+//   - map[K]V: A new map with properties for which the predicate returned false
+//
+// Example:
+//
+//	result := OmitBy(map[string]int{"a": 1, "b": 2, "c": 3}, func(v int) bool { return v > 2 })
+//	// result is map[string]int{"a": 1, "b": 2}
 func OmitBy[K comparable, V any](obj map[K]V, predicate func(V) bool) map[K]V {
 	result := make(map[K]V)
 
@@ -209,7 +352,18 @@ func OmitBy[K comparable, V any](obj map[K]V, predicate func(V) bool) map[K]V {
 }
 
 // Pick creates an object composed of the picked object properties.
-// Example: Pick(map[string]int{"a": 1, "b": 2, "c": 3}, "a", "c") -> map[string]int{"a": 1, "c": 3}
+//
+// Parameters:
+//   - obj: The source map
+//   - keys: The keys to include in the resulting map
+//
+// Returns:
+//   - map[K]V: A new map with only the properties specified in keys
+//
+// Example:
+//
+//	result := Pick(map[string]int{"a": 1, "b": 2, "c": 3}, "a", "c")
+//	// result is map[string]int{"a": 1, "c": 3}
 func Pick[K comparable, V any](obj map[K]V, keys ...K) map[K]V {
 	result := make(map[K]V)
 
@@ -223,7 +377,18 @@ func Pick[K comparable, V any](obj map[K]V, keys ...K) map[K]V {
 }
 
 // PickBy creates an object composed of the object properties for which predicate returns truthy.
-// Example: PickBy(map[string]int{"a": 1, "b": 2, "c": 3}, func(v int) bool { return v > 2 }) -> map[string]int{"c": 3}
+//
+// Parameters:
+//   - obj: The source map
+//   - predicate: A function that returns true for values to include
+//
+// Returns:
+//   - map[K]V: A new map with properties for which the predicate returned true
+//
+// Example:
+//
+//	result := PickBy(map[string]int{"a": 1, "b": 2, "c": 3}, func(v int) bool { return v > 2 })
+//	// result is map[string]int{"c": 3}
 func PickBy[K comparable, V any](obj map[K]V, predicate func(V) bool) map[K]V {
 	result := make(map[K]V)
 
@@ -237,7 +402,17 @@ func PickBy[K comparable, V any](obj map[K]V, predicate func(V) bool) map[K]V {
 }
 
 // Values returns an array of object's own enumerable property values.
-// Example: Values(map[string]int{"a": 1, "b": 2}) -> []int{1, 2}
+//
+// Parameters:
+//   - obj: The map whose values will be returned
+//
+// Returns:
+//   - []V: A slice containing all the values from the map
+//
+// Example:
+//
+//	values := Values(map[string]int{"a": 1, "b": 2})
+//	// values contains 1 and 2 (order not guaranteed)
 func Values[K comparable, V any](obj map[K]V) []V {
 	result := make([]V, 0, len(obj))
 	for _, v := range obj {
@@ -247,19 +422,50 @@ func Values[K comparable, V any](obj map[K]V) []V {
 }
 
 // Size returns the number of own enumerable properties of an object.
-// Example: Size(map[string]int{"a": 1, "b": 2}) -> 2
+//
+// Parameters:
+//   - obj: The map whose size will be returned
+//
+// Returns:
+//   - int: The number of key-value pairs in the map
+//
+// Example:
+//
+//	count := Size(map[string]int{"a": 1, "b": 2})
+//	// count is 2
 func Size[K comparable, V any](obj map[K]V) int {
 	return len(obj)
 }
 
 // IsEmpty checks if an object is empty.
-// Example: IsEmpty(map[string]int{}) -> true
+//
+// Parameters:
+//   - obj: The map to check
+//
+// Returns:
+//   - bool: True if the map contains no key-value pairs, false otherwise
+//
+// Example:
+//
+//	empty := IsEmpty(map[string]int{})
+//	// empty is true
 func IsEmpty[K comparable, V any](obj map[K]V) bool {
 	return len(obj) == 0
 }
 
 // IsEqual performs a deep comparison between two objects to determine if they are equivalent.
-// Example: IsEqual(map[string]int{"a": 1}, map[string]int{"a": 1}) -> true
+//
+// Parameters:
+//   - obj1: The first map to compare
+//   - obj2: The second map to compare
+//
+// Returns:
+//   - bool: True if both maps have the same keys and values, false otherwise
+//
+// Example:
+//
+//	equal := IsEqual(map[string]int{"a": 1}, map[string]int{"a": 1})
+//	// equal is true
 func IsEqual[K comparable, V comparable](obj1, obj2 map[K]V) bool {
 	if len(obj1) != len(obj2) {
 		return false
