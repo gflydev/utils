@@ -335,9 +335,6 @@ result := obj.PickBy(map[string]int{"a": 1, "b": 2, "c": 3}, func(v int) bool { 
 // Values
 result := obj.Values(map[string]int{"a": 1, "b": 2}) // []int{1, 2}
 
-// ValuesSorted - Get sorted values of an object
-result := obj.ValuesSorted(map[string]int{"b": 2, "a": 1}) // []int{1, 2}
-
 // Size - Get the size of an object
 result := obj.Size(map[string]int{"a": 1, "b": 2}) // 2
 
@@ -541,6 +538,51 @@ isOdd(3) // true
 add := func(a, b int) int { return a + b }
 addSpread := fn.Spread(add)
 addSpread([]int{1, 2}) // 3
+
+// TransformList - Transform a list using a transformer function
+numbers := []int{1, 2, 3}
+squares := fn.TransformList(numbers, func(x int) int { return x * x }) // []int{1, 4, 9}
+
+// TransformMap - Transform a map using a transformer function
+ages := map[string]int{"John": 30, "Jane": 25}
+doubled := fn.TransformMap(ages, func(age int) int { return age * 2 }) // map[string]int{"John": 60, "Jane": 50}
+
+// TransformListWithError - Transform a list and collect errors
+results, errors := fn.TransformListWithError([]string{"1", "2", "x"}, func(s string) (int, error) {
+    return strconv.Atoi(s)
+}) // results = []int{1, 2}, errors contains the error for "x"
+
+// TransformConcurrent - Transform a list concurrently with multiple workers
+numbers := []int{1, 2, 3, 4, 5}
+squares := fn.TransformConcurrent(numbers, func(x int) int { return x * x }, 2) // []int{1, 4, 9, 16, 25}
+
+// TransformBatch - Transform a list in batches
+numbers := []int{1, 2, 3, 4, 5}
+doubled := fn.TransformBatch(numbers, func(batch []int) []int {
+    var result []int
+    for _, n := range batch {
+        result = append(result, n*2)
+    }
+    return result
+}, 2) // []int{2, 4, 6, 8, 10}
+
+// TransformBatch - Transform a list in batches
+input := []int{1, 2, 3, 4, 5, 6, 7}
+batchSize := 3
+var batches [][]int
+
+transformerFn := func(batch []int) []string {
+    batches = append(batches, batch)
+    result := make([]string, len(batch))
+    for i, v := range batch {
+        result[i] = strconv.Itoa(v)
+    }
+    return result
+}
+
+result := TransformBatch(input, transformerFn, batchSize) 
+// result is []string{"1", "2", "3", "4", "5", "6", "7"}
+// batches is [][]int{{1, 2, 3}, {4, 5, 6}, {7}}
 ```
 
 ### Sequence Utilities

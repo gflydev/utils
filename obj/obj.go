@@ -246,26 +246,6 @@ func Values[K comparable, V any](obj map[K]V) []V {
 	return result
 }
 
-// ValuesSorted returns a sorted array of object's own enumerable property values.
-// Example: ValuesSorted(map[string]int{"b": 2, "a": 1}) -> []int{1, 2}
-func ValuesSorted[K comparable, V any](obj map[K]V) []V {
-	values := Values(obj)
-
-	// Sort the values if they are of a sortable type
-	if len(values) > 0 {
-		// Check if V is a type that can be sorted
-		switch any(values[0]).(type) {
-		case string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
-			sort.Slice(values, func(i, j int) bool {
-				// This is a bit of a hack, but it works for the basic types
-				return reflect.ValueOf(values[i]).String() < reflect.ValueOf(values[j]).String()
-			})
-		}
-	}
-
-	return values
-}
-
 // Size returns the number of own enumerable properties of an object.
 // Example: Size(map[string]int{"a": 1, "b": 2}) -> 2
 func Size[K comparable, V any](obj map[K]V) int {

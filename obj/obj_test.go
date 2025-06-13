@@ -391,6 +391,8 @@ func TestValues(t *testing.T) {
 		expected []int
 	}{
 		{map[string]int{"a": 1, "b": 2}, []int{1, 2}},
+		{map[string]int{"c": 3, "a": 1, "b": 2}, []int{1, 3, 2}},
+		{map[string]int{"c": 3, "a": 1, "b": 2}, []int{3, 1, 2}},
 		{map[string]int{}, []int{}},
 	}
 
@@ -415,23 +417,6 @@ func TestValues(t *testing.T) {
 			if !found {
 				t.Errorf("Values(%v) = %v, missing value %d", test.obj, result, value)
 			}
-		}
-	}
-}
-
-func TestValuesSorted(t *testing.T) {
-	tests := []struct {
-		obj      map[string]int
-		expected []int
-	}{
-		{map[string]int{"c": 3, "a": 1, "b": 2}, []int{1, 2, 3}},
-		{map[string]int{}, []int{}},
-	}
-
-	for _, test := range tests {
-		result := ValuesSorted(test.obj)
-		if !reflect.DeepEqual(result, test.expected) {
-			t.Errorf("ValuesSorted(%v) = %v, expected %v", test.obj, result, test.expected)
 		}
 	}
 }
@@ -503,6 +488,98 @@ func TestIsEqual(t *testing.T) {
 		result := IsEqual(test.obj1, test.obj2)
 		if result != test.expected {
 			t.Errorf("IsEqual(%v, %v) = %v, expected %v", test.obj1, test.obj2, result, test.expected)
+		}
+	}
+}
+
+func TestOmitBy(t *testing.T) {
+	tests := []struct {
+		obj       map[string]int
+		predicate func(int) bool
+		expected  map[string]int
+	}{
+		{
+			map[string]int{"a": 1, "b": 2, "c": 3},
+			func(v int) bool { return v > 2 },
+			map[string]int{"a": 1, "b": 2},
+		},
+		{
+			map[string]int{"a": 1, "b": 2, "c": 3},
+			func(v int) bool { return v < 2 },
+			map[string]int{"b": 2, "c": 3},
+		},
+		{
+			map[string]int{"a": 1, "b": 2, "c": 3},
+			func(v int) bool { return v == 2 },
+			map[string]int{"a": 1, "c": 3},
+		},
+		{
+			map[string]int{},
+			func(v int) bool { return v > 0 },
+			map[string]int{},
+		},
+		{
+			map[string]int{"a": 1, "b": 2, "c": 3},
+			func(v int) bool { return false },
+			map[string]int{"a": 1, "b": 2, "c": 3},
+		},
+		{
+			map[string]int{"a": 1, "b": 2, "c": 3},
+			func(v int) bool { return true },
+			map[string]int{},
+		},
+	}
+
+	for _, test := range tests {
+		result := OmitBy(test.obj, test.predicate)
+		if !reflect.DeepEqual(result, test.expected) {
+			t.Errorf("OmitBy(%v, predicate) = %v, expected %v", test.obj, result, test.expected)
+		}
+	}
+}
+
+func TestPickBy(t *testing.T) {
+	tests := []struct {
+		obj       map[string]int
+		predicate func(int) bool
+		expected  map[string]int
+	}{
+		{
+			map[string]int{"a": 1, "b": 2, "c": 3},
+			func(v int) bool { return v > 2 },
+			map[string]int{"c": 3},
+		},
+		{
+			map[string]int{"a": 1, "b": 2, "c": 3},
+			func(v int) bool { return v < 2 },
+			map[string]int{"a": 1},
+		},
+		{
+			map[string]int{"a": 1, "b": 2, "c": 3},
+			func(v int) bool { return v == 2 },
+			map[string]int{"b": 2},
+		},
+		{
+			map[string]int{},
+			func(v int) bool { return v > 0 },
+			map[string]int{},
+		},
+		{
+			map[string]int{"a": 1, "b": 2, "c": 3},
+			func(v int) bool { return false },
+			map[string]int{},
+		},
+		{
+			map[string]int{"a": 1, "b": 2, "c": 3},
+			func(v int) bool { return true },
+			map[string]int{"a": 1, "b": 2, "c": 3},
+		},
+	}
+
+	for _, test := range tests {
+		result := PickBy(test.obj, test.predicate)
+		if !reflect.DeepEqual(result, test.expected) {
+			t.Errorf("PickBy(%v, predicate) = %v, expected %v", test.obj, result, test.expected)
 		}
 	}
 }
