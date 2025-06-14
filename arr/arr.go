@@ -219,50 +219,6 @@ func Fill[T any](array []T, value T, start, end int) []T {
 	return result
 }
 
-// FindIndex returns the index of the first element that satisfies the predicate function.
-//
-// Parameters:
-//   - array: The input array
-//   - predicate: A function that returns true for elements that satisfy the condition
-//
-// Returns:
-//   - int: The index of the first element that satisfies the predicate, or -1 if none found
-//
-// Example:
-//
-//	FindIndex([]int{1, 2, 3, 4}, func(n int) bool { return n > 2 }) -> 2
-//	FindIndex([]string{"a", "b", "c"}, func(s string) bool { return s == "b" }) -> 1
-func FindIndex[T any](array []T, predicate func(T) bool) int {
-	for i, v := range array {
-		if predicate(v) {
-			return i
-		}
-	}
-	return -1
-}
-
-// FindLastIndex returns the index of the last element that satisfies the predicate function.
-//
-// Parameters:
-//   - array: The input array
-//   - predicate: A function that returns true for elements that satisfy the condition
-//
-// Returns:
-//   - int: The index of the last element that satisfies the predicate, or -1 if none found
-//
-// Example:
-//
-//	FindLastIndex([]int{1, 2, 3, 4}, func(n int) bool { return n > 2 }) -> 3
-//	FindLastIndex([]string{"a", "b", "c", "b"}, func(s string) bool { return s == "b" }) -> 3
-func FindLastIndex[T any](array []T, predicate func(T) bool) int {
-	for i := len(array) - 1; i >= 0; i-- {
-		if predicate(array[i]) {
-			return i
-		}
-	}
-	return -1
-}
-
 // First returns the first element of an array.
 //
 // Parameters:
@@ -1189,6 +1145,50 @@ func Find[T any](slice []T, predicate func(T) bool) (T, bool) {
 	return zero, false
 }
 
+// FindIndex returns the index of the first element that satisfies the predicate function.
+//
+// Parameters:
+//   - array: The input array
+//   - predicate: A function that returns true for elements that satisfy the condition
+//
+// Returns:
+//   - int: The index of the first element that satisfies the predicate, or -1 if none found
+//
+// Example:
+//
+//	FindIndex([]int{1, 2, 3, 4}, func(n int) bool { return n > 2 }) -> 2
+//	FindIndex([]string{"a", "b", "c"}, func(s string) bool { return s == "b" }) -> 1
+func FindIndex[T any](array []T, predicate func(T) bool) int {
+	for i, v := range array {
+		if predicate(v) {
+			return i
+		}
+	}
+	return -1
+}
+
+// FindLastIndex returns the index of the last element that satisfies the predicate function.
+//
+// Parameters:
+//   - array: The input array
+//   - predicate: A function that returns true for elements that satisfy the condition
+//
+// Returns:
+//   - int: The index of the last element that satisfies the predicate, or -1 if none found
+//
+// Example:
+//
+//	FindLastIndex([]int{1, 2, 3, 4}, func(n int) bool { return n > 2 }) -> 3
+//	FindLastIndex([]string{"a", "b", "c", "b"}, func(s string) bool { return s == "b" }) -> 3
+func FindLastIndex[T any](array []T, predicate func(T) bool) int {
+	for i := len(array) - 1; i >= 0; i-- {
+		if predicate(array[i]) {
+			return i
+		}
+	}
+	return -1
+}
+
 // Unique returns a new slice with duplicate elements removed.
 // It preserves the order of elements, keeping the first occurrence of each element.
 //
@@ -1426,48 +1426,6 @@ func Accessible(value any) bool {
 	return kind == reflect.Array || kind == reflect.Slice || kind == reflect.Map
 }
 
-// Add adds a key/value pair to a map if the key doesn't already exist.
-// It returns a new map without modifying the original.
-//
-// Parameters:
-//   - array: The input map to add the key/value pair to
-//   - key: The key to add
-//   - value: The value to associate with the key
-//
-// Returns:
-//   - A new map with the key/value pair added (if the key didn't exist)
-//
-// Example:
-//
-//	// Add a new key/value pair
-//	original := map[string]any{"name": "John", "age": 30}
-//	result := Add(original, "city", "New York")
-//	// result = {"name": "John", "age": 30, "city": "New York"}
-//	// original remains unchanged
-//
-//	// Try to add an existing key
-//	original := map[string]any{"name": "John", "age": 30}
-//	result := Add(original, "name", "Jane")
-//	// result = {"name": "John", "age": 30}
-//	// The key "name" already exists, so the value is not changed
-//
-//	// Add to an empty map
-//	empty := map[string]any{}
-//	result := Add(empty, "status", "active")
-//	// result = {"status": "active"}
-func Add(array map[string]any, key string, value any) map[string]any {
-	result := make(map[string]any)
-	for k, v := range array {
-		result[k] = v
-	}
-
-	if _, exists := result[key]; !exists {
-		result[key] = value
-	}
-
-	return result
-}
-
 // Collapse collapses a slice of slices into a single slice.
 // It flattens a two-dimensional slice into a one-dimensional slice.
 //
@@ -1579,189 +1537,6 @@ func CrossJoin[T any](arrays ...[]T) [][]T {
 	}
 
 	return result
-}
-
-// Divide returns two slices, one containing the keys, and the other containing the values of the original map.
-// It separates a map into its keys and values while preserving the corresponding order.
-//
-// Parameters:
-//   - array: The input map to divide
-//
-// Returns:
-//   - A slice containing all the keys from the map
-//   - A slice containing all the values from the map
-//
-// Example:
-//
-//	// Divide a map into keys and values
-//	keys, values := Divide(map[string]any{
-//	    "name": "John",
-//	    "age": 30,
-//	    "city": "New York",
-//	})
-//	// keys could be ["name", "age", "city"] (order may vary)
-//	// values could be ["John", 30, "New York"] (in the same order as keys)
-//
-//	// Divide an empty map
-//	keys, values := Divide(map[string]any{})
-//	// keys = [] (empty slice)
-//	// values = [] (empty slice)
-//
-//	// Note: The order of keys and values is not guaranteed to be the same across different runs
-//	// due to the non-deterministic iteration order of Go maps
-func Divide(array map[string]any) ([]string, []any) {
-	keys := make([]string, 0, len(array))
-	values := make([]any, 0, len(array))
-
-	for k, v := range array {
-		keys = append(keys, k)
-		values = append(values, v)
-	}
-
-	return keys, values
-}
-
-// Dot flattens a multi-dimensional map into a single level map with "dot" notation.
-// It converts nested maps into a flat map where keys are paths to values using dot separators.
-//
-// Parameters:
-//   - array: The input nested map to flatten
-//
-// Returns:
-//   - A flattened map with dot notation keys
-//
-// Example:
-//
-//	// Flatten a nested map
-//	nested := map[string]any{
-//	    "user": map[string]any{
-//	        "name": "John",
-//	        "address": map[string]any{
-//	            "city": "New York",
-//	            "zip": 10001,
-//	        },
-//	    },
-//	    "status": "active",
-//	}
-//
-//	flat := Dot(nested)
-//	// Returns:
-//	// {
-//	//    "user.name": "John",
-//	//    "user.address.city": "New York",
-//	//    "user.address.zip": 10001,
-//	//    "status": "active"
-//	// }
-//
-//	// Flatten an empty map
-//	Dot(map[string]any{}) // Returns an empty map
-//
-//	// Flatten a map with no nested structures
-//	Dot(map[string]any{"a": 1, "b": 2}) // Returns the same map {"a": 1, "b": 2}
-func Dot(array map[string]any) map[string]any {
-	result := make(map[string]any)
-	dotRecursive(array, result, "")
-	return result
-}
-
-// dotRecursive is a helper function for Dot
-func dotRecursive(array, result map[string]any, prepend string) {
-	for key, value := range array {
-		if prepend != "" {
-			key = prepend + "." + key
-		}
-
-		if subArray, ok := value.(map[string]any); ok {
-			dotRecursive(subArray, result, key)
-		} else {
-			result[key] = value
-		}
-	}
-}
-
-// Except returns a new map with the specified keys removed from the original map.
-// It creates a copy of the input map excluding the specified keys.
-//
-// Parameters:
-//   - array: The input map to filter
-//   - keys: Variable number of keys to exclude from the result
-//
-// Returns:
-//   - A new map with the specified keys removed
-//
-// Example:
-//
-//	// Remove specific keys from a map
-//	original := map[string]any{
-//	    "name": "John",
-//	    "age": 30,
-//	    "city": "New York",
-//	    "country": "USA",
-//	}
-//	result := Except(original, "age", "country")
-//	// Returns {"name": "John", "city": "New York"}
-//
-//	// Remove keys that don't exist
-//	original := map[string]any{"a": 1, "b": 2}
-//	result := Except(original, "c", "d")
-//	// Returns {"a": 1, "b": 2} (unchanged since keys don't exist)
-//
-//	// Remove all keys
-//	original := map[string]any{"a": 1, "b": 2}
-//	result := Except(original, "a", "b")
-//	// Returns {} (empty map)
-//
-//	// No keys to remove
-//	original := map[string]any{"a": 1, "b": 2}
-//	result := Except(original)
-//	// Returns {"a": 1, "b": 2} (unchanged)
-func Except(array map[string]any, keys ...string) map[string]any {
-	result := make(map[string]any)
-
-	// Create a map for faster lookup
-	keysMap := make(map[string]struct{})
-	for _, key := range keys {
-		keysMap[key] = struct{}{}
-	}
-
-	for key, value := range array {
-		if _, exists := keysMap[key]; !exists {
-			result[key] = value
-		}
-	}
-
-	return result
-}
-
-// Exists checks if the given key exists in the map.
-// It returns true if the key exists, false otherwise.
-//
-// Parameters:
-//   - array: The map to check
-//   - key: The key to look for
-//
-// Returns:
-//   - true if the key exists in the map, false otherwise
-//
-// Example:
-//
-//	// Check if a key exists
-//	user := map[string]any{
-//	    "name": "John",
-//	    "age": 30,
-//	}
-//	Exists(user, "name") // Returns true
-//	Exists(user, "email") // Returns false
-//
-//	// Check in an empty map
-//	Exists(map[string]any{}, "key") // Returns false
-//
-//	// Check with a nil map
-//	var nilMap map[string]any
-//	Exists(nilMap, "key") // Returns false (safe to use with nil maps)
-func Exists(array map[string]any, key string) bool {
-	_, exists := array[key]
-	return exists
 }
 
 // FirstOrDefault returns the first element in the array, or a default value if the array is empty.
@@ -1924,146 +1699,6 @@ func Get(array map[string]any, key string, defaultValue any) any {
 	}
 
 	return defaultValue
-}
-
-// Has determines if all of the specified keys exist in the map using "dot" notation.
-// It checks if every key in the provided list exists in the map, including nested keys.
-// Returns true only if all keys exist.
-//
-// Parameters:
-//   - array: The input map to check
-//   - keys: Variable number of keys to check for existence
-//
-// Returns:
-//   - true if all specified keys exist in the map, false otherwise
-//
-// Example:
-//
-//	// Check simple keys
-//	data := map[string]any{
-//	    "name": "John",
-//	    "age": 30,
-//	}
-//	Has(data, "name") // Returns true
-//	Has(data, "email") // Returns false
-//	Has(data, "name", "age") // Returns true (both keys exist)
-//	Has(data, "name", "email") // Returns false (not all keys exist)
-//
-//	// Check nested keys
-//	nested := map[string]any{
-//	    "user": map[string]any{
-//	        "name": "John",
-//	        "address": map[string]any{
-//	            "city": "New York",
-//	        },
-//	    },
-//	}
-//
-//	Has(nested, "user.name") // Returns true
-//	Has(nested, "user.address.city") // Returns true
-//	Has(nested, "user.address.country") // Returns false
-//	Has(nested, "user.name", "user.address.city") // Returns true (both keys exist)
-//
-//	// Empty keys list
-//	Has(data) // Returns false (no keys to check)
-func Has(array map[string]any, keys ...string) bool {
-	if len(keys) == 0 {
-		return false
-	}
-
-	for _, key := range keys {
-		if !hasDot(array, key) {
-			return false
-		}
-	}
-
-	return true
-}
-
-// hasDot is a helper function for Has
-func hasDot(array map[string]any, key string) bool {
-	if array == nil {
-		return false
-	}
-
-	if key == "" {
-		return false
-	}
-
-	keys := strings.Split(key, ".")
-	current := array
-
-	for i, segment := range keys {
-		if val, exists := current[segment]; exists {
-			if i == len(keys)-1 {
-				return true
-			}
-
-			if nextMap, ok := val.(map[string]any); ok {
-				current = nextMap
-			} else {
-				return false
-			}
-		} else {
-			return false
-		}
-	}
-
-	return false
-}
-
-// HasAny determines if any of the specified keys exist in the map using "dot" notation.
-// It checks if at least one key in the provided list exists in the map, including nested keys.
-// Returns true if at least one key exists.
-//
-// Parameters:
-//   - array: The input map to check
-//   - keys: Variable number of keys to check for existence
-//
-// Returns:
-//   - true if at least one of the specified keys exists in the map, false otherwise
-//
-// Example:
-//
-//	// Check simple keys
-//	data := map[string]any{
-//	    "name": "John",
-//	    "age": 30,
-//	}
-//	HasAny(data, "name") // Returns true
-//	HasAny(data, "email") // Returns false
-//	HasAny(data, "name", "email") // Returns true (at least one key exists)
-//	HasAny(data, "email", "phone") // Returns false (none of the keys exist)
-//
-//	// Check nested keys
-//	nested := map[string]any{
-//	    "user": map[string]any{
-//	        "name": "John",
-//	        "address": map[string]any{
-//	            "city": "New York",
-//	        },
-//	    },
-//	}
-//
-//	HasAny(nested, "user.name") // Returns true
-//	HasAny(nested, "user.address.city") // Returns true
-//	HasAny(nested, "user.address.country") // Returns false
-//	HasAny(nested, "user.address.country", "user.name") // Returns true (at least one key exists)
-//
-//	// Empty keys list
-//	HasAny(data) // Returns false (no keys to check)
-func HasAny(array map[string]any, keys ...string) bool {
-	if len(keys) == 0 {
-		return false
-	}
-
-	for _, key := range keys {
-		if hasDot(array, key) {
-			return true
-		}
-	}
-
-	return false
 }
 
 // IsAssoc determines if a value is an associative array/map (has string keys).
@@ -2457,6 +2092,159 @@ func RandomOrDefault[T any](array []T, defaultValue T) T {
 	return array[rand.IntN(len(array))]
 }
 
+// SortRecursive recursively sorts maps by keys and nested arrays/maps.
+//
+// Parameters:
+//   - array: The source data structure to sort (can be a map, slice, or any other value)
+//
+// Returns:
+//   - A new data structure with all nested maps sorted by keys
+//
+// Example:
+//
+//	data := map[string]any{
+//	    "c": 3,
+//	    "a": map[string]any{"z": 26, "x": 24},
+//	    "b": []any{2, 1, 3}
+//	}
+//	result := arr.SortRecursive(data)
+//	// result: {
+//	//   "a": {"x": 24, "z": 26},
+//	//   "b": [2, 1, 3], // Note: array order is preserved
+//	//   "c": 3
+//	// }
+func SortRecursive(array any) any {
+	switch arr := array.(type) {
+	case map[string]any:
+		// Sort the map by keys
+		keys := make([]string, 0, len(arr))
+		for k := range arr {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		// Create a new map with the sorted keys and recursively sorted values
+		result := make(map[string]any)
+		for _, k := range keys {
+			result[k] = SortRecursive(arr[k])
+		}
+
+		return result
+
+	case []any:
+		// Create a new slice with recursively sorted values
+		result := make([]any, len(arr))
+		for i, v := range arr {
+			result[i] = SortRecursive(v)
+		}
+
+		return result
+
+	default:
+		// Return the value as is
+		return array
+	}
+}
+
+// WhereNotNull filters an array by removing nil values.
+//
+// Parameters:
+//   - array: The source array to filter
+//
+// Returns:
+//   - A new array with all nil values removed
+//
+// Example:
+//
+//	type User struct {
+//	    Name string
+//	}
+//	var u1 = &User{Name: "Alice"}
+//	var u2 *User = nil
+//	var u3 = &User{Name: "Bob"}
+//	users := []*User{u1, u2, u3}
+//	result := arr.WhereNotNull(users)
+//	// result: [&User{Name: "Alice"}, &User{Name: "Bob"}]
+func WhereNotNull[T any](array []T) []T {
+	result := make([]T, 0)
+
+	for _, item := range array {
+		// Check if the item is nil
+		if !isNil(item) {
+			result = append(result, item)
+		}
+	}
+
+	return result
+}
+
+// isNil checks if a value is nil. This is a helper function used internally.
+//
+// Parameters:
+//   - value: The value to check for nil
+//
+// Returns:
+//   - true if the value is nil, false otherwise
+//
+// Note:
+//   - This function handles nil checks for pointers, interfaces, maps, slices, and channels
+func isNil(value any) bool {
+	if value == nil {
+		return true
+	}
+
+	v := reflect.ValueOf(value)
+	kind := v.Kind()
+
+	// Check for nil pointers, interfaces, maps, slices, and channels
+	return (kind == reflect.Ptr || kind == reflect.Interface ||
+		kind == reflect.Map || kind == reflect.Slice ||
+		kind == reflect.Chan) && v.IsNil()
+}
+
+// Wrap ensures a value is contained in a slice. If the value is already a slice or array,
+// it converts it to []any. Otherwise, it creates a new slice containing the value.
+//
+// Parameters:
+//   - value: The value to wrap in a slice
+//
+// Returns:
+//   - A slice containing the value or the converted slice
+//
+// Example:
+//
+//	// Wrapping a single value
+//	result1 := arr.Wrap(42)
+//	// result1: []any{42}
+//
+//	// Wrapping an existing slice
+//	nums := []int{1, 2, 3}
+//	result2 := arr.Wrap(nums)
+//	// result2: []any{1, 2, 3}
+//
+//	// Handling nil
+//	result3 := arr.Wrap(nil)
+//	// result3: []any{}
+func Wrap(value any) []any {
+	if value == nil {
+		return []any{}
+	}
+
+	v := reflect.ValueOf(value)
+
+	// If it's already a slice or array, convert it to []any
+	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
+		result := make([]any, v.Len())
+		for i := 0; i < v.Len(); i++ {
+			result[i] = v.Index(i).Interface()
+		}
+		return result
+	}
+
+	// Otherwise, wrap it in a slice
+	return []any{value}
+}
+
 // Set sets a value within a nested map using "dot" notation.
 //
 // Parameters:
@@ -2570,60 +2358,6 @@ func SortByKeyDesc(array map[string]any) map[string]any {
 	return result
 }
 
-// SortRecursive recursively sorts maps by keys and nested arrays/maps.
-//
-// Parameters:
-//   - array: The source data structure to sort (can be a map, slice, or any other value)
-//
-// Returns:
-//   - A new data structure with all nested maps sorted by keys
-//
-// Example:
-//
-//	data := map[string]any{
-//	    "c": 3,
-//	    "a": map[string]any{"z": 26, "x": 24},
-//	    "b": []any{2, 1, 3}
-//	}
-//	result := arr.SortRecursive(data)
-//	// result: {
-//	//   "a": {"x": 24, "z": 26},
-//	//   "b": [2, 1, 3], // Note: array order is preserved
-//	//   "c": 3
-//	// }
-func SortRecursive(array any) any {
-	switch arr := array.(type) {
-	case map[string]any:
-		// Sort the map by keys
-		keys := make([]string, 0, len(arr))
-		for k := range arr {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-
-		// Create a new map with the sorted keys and recursively sorted values
-		result := make(map[string]any)
-		for _, k := range keys {
-			result[k] = SortRecursive(arr[k])
-		}
-
-		return result
-
-	case []any:
-		// Create a new slice with recursively sorted values
-		result := make([]any, len(arr))
-		for i, v := range arr {
-			result[i] = SortRecursive(v)
-		}
-
-		return result
-
-	default:
-		// Return the value as is
-		return array
-	}
-}
-
 // Undot expands a flattened map with "dot" notation keys back into a nested map structure.
 //
 // Parameters:
@@ -2679,103 +2413,369 @@ func Undot(array map[string]any) map[string]any {
 	return result
 }
 
-// WhereNotNull filters an array by removing nil values.
+// Divide returns two slices, one containing the keys, and the other containing the values of the original map.
+// It separates a map into its keys and values while preserving the corresponding order.
 //
 // Parameters:
-//   - array: The source array to filter
+//   - array: The input map to divide
 //
 // Returns:
-//   - A new array with all nil values removed
+//   - A slice containing all the keys from the map
+//   - A slice containing all the values from the map
 //
 // Example:
 //
-//	type User struct {
-//	    Name string
-//	}
-//	var u1 = &User{Name: "Alice"}
-//	var u2 *User = nil
-//	var u3 = &User{Name: "Bob"}
-//	users := []*User{u1, u2, u3}
-//	result := arr.WhereNotNull(users)
-//	// result: [&User{Name: "Alice"}, &User{Name: "Bob"}]
-func WhereNotNull[T any](array []T) []T {
-	result := make([]T, 0)
+//	// Divide a map into keys and values
+//	keys, values := Divide(map[string]any{
+//	    "name": "John",
+//	    "age": 30,
+//	    "city": "New York",
+//	})
+//	// keys could be ["name", "age", "city"] (order may vary)
+//	// values could be ["John", 30, "New York"] (in the same order as keys)
+//
+//	// Divide an empty map
+//	keys, values := Divide(map[string]any{})
+//	// keys = [] (empty slice)
+//	// values = [] (empty slice)
+//
+//	// Note: The order of keys and values is not guaranteed to be the same across different runs
+//	// due to the non-deterministic iteration order of Go maps
+func Divide(array map[string]any) ([]string, []any) {
+	keys := make([]string, 0, len(array))
+	values := make([]any, 0, len(array))
 
-	for _, item := range array {
-		// Check if the item is nil
-		if !isNil(item) {
-			result = append(result, item)
+	for k, v := range array {
+		keys = append(keys, k)
+		values = append(values, v)
+	}
+
+	return keys, values
+}
+
+// Dot flattens a multi-dimensional map into a single level map with "dot" notation.
+// It converts nested maps into a flat map where keys are paths to values using dot separators.
+//
+// Parameters:
+//   - array: The input nested map to flatten
+//
+// Returns:
+//   - A flattened map with dot notation keys
+//
+// Example:
+//
+//	// Flatten a nested map
+//	nested := map[string]any{
+//	    "user": map[string]any{
+//	        "name": "John",
+//	        "address": map[string]any{
+//	            "city": "New York",
+//	            "zip": 10001,
+//	        },
+//	    },
+//	    "status": "active",
+//	}
+//
+//	flat := Dot(nested)
+//	// Returns:
+//	// {
+//	//    "user.name": "John",
+//	//    "user.address.city": "New York",
+//	//    "user.address.zip": 10001,
+//	//    "status": "active"
+//	// }
+//
+//	// Flatten an empty map
+//	Dot(map[string]any{}) // Returns an empty map
+//
+//	// Flatten a map with no nested structures
+//	Dot(map[string]any{"a": 1, "b": 2}) // Returns the same map {"a": 1, "b": 2}
+func Dot(array map[string]any) map[string]any {
+	result := make(map[string]any)
+	dotRecursive(array, result, "")
+	return result
+}
+
+// dotRecursive is a helper function for Dot
+func dotRecursive(array, result map[string]any, prepend string) {
+	for key, value := range array {
+		if prepend != "" {
+			key = prepend + "." + key
+		}
+
+		if subArray, ok := value.(map[string]any); ok {
+			dotRecursive(subArray, result, key)
+		} else {
+			result[key] = value
+		}
+	}
+}
+
+// Except returns a new map with the specified keys removed from the original map.
+// It creates a copy of the input map excluding the specified keys.
+//
+// Parameters:
+//   - array: The input map to filter
+//   - keys: Variable number of keys to exclude from the result
+//
+// Returns:
+//   - A new map with the specified keys removed
+//
+// Example:
+//
+//	// Remove specific keys from a map
+//	original := map[string]any{
+//	    "name": "John",
+//	    "age": 30,
+//	    "city": "New York",
+//	    "country": "USA",
+//	}
+//	result := Except(original, "age", "country")
+//	// Returns {"name": "John", "city": "New York"}
+//
+//	// Remove keys that don't exist
+//	original := map[string]any{"a": 1, "b": 2}
+//	result := Except(original, "c", "d")
+//	// Returns {"a": 1, "b": 2} (unchanged since keys don't exist)
+//
+//	// Remove all keys
+//	original := map[string]any{"a": 1, "b": 2}
+//	result := Except(original, "a", "b")
+//	// Returns {} (empty map)
+//
+//	// No keys to remove
+//	original := map[string]any{"a": 1, "b": 2}
+//	result := Except(original)
+//	// Returns {"a": 1, "b": 2} (unchanged)
+func Except(array map[string]any, keys ...string) map[string]any {
+	result := make(map[string]any)
+
+	// Create a map for faster lookup
+	keysMap := make(map[string]struct{})
+	for _, key := range keys {
+		keysMap[key] = struct{}{}
+	}
+
+	for key, value := range array {
+		if _, exists := keysMap[key]; !exists {
+			result[key] = value
 		}
 	}
 
 	return result
 }
 
-// isNil checks if a value is nil. This is a helper function used internally.
+// Exists checks if the given key exists in the map.
+// It returns true if the key exists, false otherwise.
 //
 // Parameters:
-//   - value: The value to check for nil
+//   - array: The map to check
+//   - key: The key to look for
 //
 // Returns:
-//   - true if the value is nil, false otherwise
-//
-// Note:
-//   - This function handles nil checks for pointers, interfaces, maps, slices, and channels
-func isNil(value any) bool {
-	if value == nil {
-		return true
-	}
-
-	v := reflect.ValueOf(value)
-	kind := v.Kind()
-
-	// Check for nil pointers, interfaces, maps, slices, and channels
-	return (kind == reflect.Ptr || kind == reflect.Interface ||
-		kind == reflect.Map || kind == reflect.Slice ||
-		kind == reflect.Chan) && v.IsNil()
-}
-
-// Wrap ensures a value is contained in a slice. If the value is already a slice or array,
-// it converts it to []any. Otherwise, it creates a new slice containing the value.
-//
-// Parameters:
-//   - value: The value to wrap in a slice
-//
-// Returns:
-//   - A slice containing the value or the converted slice
+//   - true if the key exists in the map, false otherwise
 //
 // Example:
 //
-//	// Wrapping a single value
-//	result1 := arr.Wrap(42)
-//	// result1: []any{42}
+//	// Check if a key exists
+//	user := map[string]any{
+//	    "name": "John",
+//	    "age": 30,
+//	}
+//	Exists(user, "name") // Returns true
+//	Exists(user, "email") // Returns false
 //
-//	// Wrapping an existing slice
-//	nums := []int{1, 2, 3}
-//	result2 := arr.Wrap(nums)
-//	// result2: []any{1, 2, 3}
+//	// Check in an empty map
+//	Exists(map[string]any{}, "key") // Returns false
 //
-//	// Handling nil
-//	result3 := arr.Wrap(nil)
-//	// result3: []any{}
-func Wrap(value any) []any {
-	if value == nil {
-		return []any{}
+//	// Check with a nil map
+//	var nilMap map[string]any
+//	Exists(nilMap, "key") // Returns false (safe to use with nil maps)
+func Exists(array map[string]any, key string) bool {
+	_, exists := array[key]
+	return exists
+}
+
+// Add adds a key/value pair to a map if the key doesn't already exist.
+// It returns a new map without modifying the original.
+//
+// Parameters:
+//   - array: The input map to add the key/value pair to
+//   - key: The key to add
+//   - value: The value to associate with the key
+//
+// Returns:
+//   - A new map with the key/value pair added (if the key didn't exist)
+//
+// Example:
+//
+//	// Add a new key/value pair
+//	original := map[string]any{"name": "John", "age": 30}
+//	result := Add(original, "city", "New York")
+//	// result = {"name": "John", "age": 30, "city": "New York"}
+//	// original remains unchanged
+//
+//	// Try to add an existing key
+//	original := map[string]any{"name": "John", "age": 30}
+//	result := Add(original, "name", "Jane")
+//	// result = {"name": "John", "age": 30}
+//	// The key "name" already exists, so the value is not changed
+//
+//	// Add to an empty map
+//	empty := map[string]any{}
+//	result := Add(empty, "status", "active")
+//	// result = {"status": "active"}
+func Add(array map[string]any, key string, value any) map[string]any {
+	result := make(map[string]any)
+	for k, v := range array {
+		result[k] = v
 	}
 
-	v := reflect.ValueOf(value)
+	if _, exists := result[key]; !exists {
+		result[key] = value
+	}
 
-	// If it's already a slice or array, convert it to []any
-	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
-		result := make([]any, v.Len())
-		for i := 0; i < v.Len(); i++ {
-			result[i] = v.Index(i).Interface()
+	return result
+}
+
+// Has determines if all of the specified keys exist in the map using "dot" notation.
+// It checks if every key in the provided list exists in the map, including nested keys.
+// Returns true only if all keys exist.
+//
+// Parameters:
+//   - array: The input map to check
+//   - keys: Variable number of keys to check for existence
+//
+// Returns:
+//   - true if all specified keys exist in the map, false otherwise
+//
+// Example:
+//
+//	// Check simple keys
+//	data := map[string]any{
+//	    "name": "John",
+//	    "age": 30,
+//	}
+//	Has(data, "name") // Returns true
+//	Has(data, "email") // Returns false
+//	Has(data, "name", "age") // Returns true (both keys exist)
+//	Has(data, "name", "email") // Returns false (not all keys exist)
+//
+//	// Check nested keys
+//	nested := map[string]any{
+//	    "user": map[string]any{
+//	        "name": "John",
+//	        "address": map[string]any{
+//	            "city": "New York",
+//	        },
+//	    },
+//	}
+//
+//	Has(nested, "user.name") // Returns true
+//	Has(nested, "user.address.city") // Returns true
+//	Has(nested, "user.address.country") // Returns false
+//	Has(nested, "user.name", "user.address.city") // Returns true (both keys exist)
+//
+//	// Empty keys list
+//	Has(data) // Returns false (no keys to check)
+func Has(array map[string]any, keys ...string) bool {
+	if len(keys) == 0 {
+		return false
+	}
+
+	for _, key := range keys {
+		if !hasDot(array, key) {
+			return false
 		}
-		return result
 	}
 
-	// Otherwise, wrap it in a slice
-	return []any{value}
+	return true
+}
+
+// hasDot is a helper function for Has
+func hasDot(array map[string]any, key string) bool {
+	if array == nil {
+		return false
+	}
+
+	if key == "" {
+		return false
+	}
+
+	keys := strings.Split(key, ".")
+	current := array
+
+	for i, segment := range keys {
+		if val, exists := current[segment]; exists {
+			if i == len(keys)-1 {
+				return true
+			}
+
+			if nextMap, ok := val.(map[string]any); ok {
+				current = nextMap
+			} else {
+				return false
+			}
+		} else {
+			return false
+		}
+	}
+
+	return false
+}
+
+// HasAny determines if any of the specified keys exist in the map using "dot" notation.
+// It checks if at least one key in the provided list exists in the map, including nested keys.
+// Returns true if at least one key exists.
+//
+// Parameters:
+//   - array: The input map to check
+//   - keys: Variable number of keys to check for existence
+//
+// Returns:
+//   - true if at least one of the specified keys exists in the map, false otherwise
+//
+// Example:
+//
+//	// Check simple keys
+//	data := map[string]any{
+//	    "name": "John",
+//	    "age": 30,
+//	}
+//	HasAny(data, "name") // Returns true
+//	HasAny(data, "email") // Returns false
+//	HasAny(data, "name", "email") // Returns true (at least one key exists)
+//	HasAny(data, "email", "phone") // Returns false (none of the keys exist)
+//
+//	// Check nested keys
+//	nested := map[string]any{
+//	    "user": map[string]any{
+//	        "name": "John",
+//	        "address": map[string]any{
+//	            "city": "New York",
+//	        },
+//	    },
+//	}
+//
+//	HasAny(nested, "user.name") // Returns true
+//	HasAny(nested, "user.address.city") // Returns true
+//	HasAny(nested, "user.address.country") // Returns false
+//	HasAny(nested, "user.address.country", "user.name") // Returns true (at least one key exists)
+//
+//	// Empty keys list
+//	HasAny(data) // Returns false (no keys to check)
+func HasAny(array map[string]any, keys ...string) bool {
+	if len(keys) == 0 {
+		return false
+	}
+
+	for _, key := range keys {
+		if hasDot(array, key) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // MapMerge combines multiple maps into a single new map.
