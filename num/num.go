@@ -518,42 +518,6 @@ func Format(number float64, decimals int, decimalSeparator, thousandsSeparator s
 	return result.String()
 }
 
-// FormatCompact formats a number to a compact form with K, M, B suffixes.
-//
-// Parameters:
-//   - number: The number to format
-//   - decimals: The number of decimal places to include
-//
-// Returns:
-//   - string: The formatted number as a string with appropriate suffix (K for thousands,
-//     M for millions, B for billions)
-//
-// Examples:
-//
-//	FormatCompact(1234, 2)       // Returns "1.23K"
-//	FormatCompact(1234567, 1)    // Returns "1.2M"
-//	FormatCompact(1000000000, 1) // Returns "1.0B"
-//	FormatCompact(999, 1)        // Returns "999.0"
-//	FormatCompact(-1234567, 2)   // Returns "-1.23M"
-func FormatCompact(number float64, decimals int) string {
-	absNumber := math.Abs(number)
-	sign := ""
-	if number < 0 {
-		sign = "-"
-	}
-
-	switch {
-	case absNumber >= 1_000_000_000:
-		return sign + fmt.Sprintf("%.*f", decimals, absNumber/1_000_000_000) + "B"
-	case absNumber >= 1_000_000:
-		return sign + fmt.Sprintf("%.*f", decimals, absNumber/1_000_000) + "M"
-	case absNumber >= 1_000:
-		return sign + fmt.Sprintf("%.*f", decimals, absNumber/1_000) + "K"
-	default:
-		return sign + fmt.Sprintf("%.*f", decimals, absNumber)
-	}
-}
-
 // FormatPercentage formats a number as a percentage with the specified number of decimal places.
 //
 // Parameters:
@@ -605,4 +569,428 @@ func Percent(number, total float64, decimals ...int) float64 {
 	}
 
 	return percentage
+}
+
+// Abbreviate formats a number to a compact form with K, M, B, T suffixes.
+//
+// Parameters:
+//   - number: The number to format
+//   - precision: Optional. The number of decimal places to include. Default is 0.
+//
+// Returns:
+//   - string: The formatted number as a string with appropriate suffix (K for thousands,
+//     M for millions, B for billions, T for trillions)
+//
+// Examples:
+//
+//	Abbreviate(1000)             // Returns "1K"
+//	Abbreviate(489939)           // Returns "490K"
+//	Abbreviate(1230000, 2)       // Returns "1.23M"
+//	Abbreviate(1000000000)       // Returns "1B"
+//	Abbreviate(1500000000000, 1) // Returns "1.5T"
+//	Abbreviate(-1234567, 2)   // Returns "-1.23M"
+func Abbreviate(number float64, precision ...int) string {
+	absNumber := math.Abs(number)
+	sign := ""
+	if number < 0 {
+		sign = "-"
+	}
+
+	// Default precision is 0 if not provided
+	prec := 0
+	if len(precision) > 0 {
+		prec = precision[0]
+	}
+
+	switch {
+	case absNumber >= 1_000_000_000_000:
+		return sign + fmt.Sprintf("%.*f", prec, absNumber/1_000_000_000_000) + "T"
+	case absNumber >= 1_000_000_000:
+		return sign + fmt.Sprintf("%.*f", prec, absNumber/1_000_000_000) + "B"
+	case absNumber >= 1_000_000:
+		return sign + fmt.Sprintf("%.*f", prec, absNumber/1_000_000) + "M"
+	case absNumber >= 1_000:
+		return sign + fmt.Sprintf("%.*f", prec, absNumber/1_000) + "K"
+	default:
+		return sign + fmt.Sprintf("%.*f", prec, absNumber)
+	}
+}
+
+// CurrencySymbol returns the symbol for the given currency code.
+//
+// Parameters:
+//   - code: The ISO 4217 currency code (e.g., "USD", "EUR", "GBP")
+//
+// Returns:
+//   - string: The currency symbol
+func CurrencySymbol(code string) string {
+	symbols := map[string]string{
+		"USD": "$",
+		"EUR": "€",
+		"GBP": "£",
+		"JPY": "¥",
+		"CNY": "¥",
+		"INR": "₹",
+		"RUB": "₽",
+		"BRL": "R$",
+		"KRW": "₩",
+		"AUD": "A$",
+		"CAD": "C$",
+		"CHF": "CHF",
+		"HKD": "HK$",
+		"SGD": "S$",
+		"SEK": "kr",
+		"NOK": "kr",
+		"DKK": "kr",
+		"PLN": "zł",
+		"THB": "฿",
+		"MXN": "Mex$",
+		"ZAR": "R",
+	}
+
+	if symbol, ok := symbols[code]; ok {
+		return symbol
+	}
+	return code
+}
+
+// LocaleInfo contains formatting information for a specific locale.
+type LocaleInfo struct {
+	DecimalSeparator   string
+	ThousandsSeparator string
+	SymbolPosition     string // "prefix" or "suffix"
+}
+
+// GetLocaleInfo returns formatting information for the given locale.
+//
+// Parameters:
+//   - locale: The locale code (e.g., "en", "de", "fr")
+//
+// Returns:
+//   - LocaleInfo: The formatting information for the locale
+func GetLocaleInfo(locale string) LocaleInfo {
+	locales := map[string]LocaleInfo{
+		"en": {
+			DecimalSeparator:   ".",
+			ThousandsSeparator: ",",
+			SymbolPosition:     "prefix",
+		},
+		"de": {
+			DecimalSeparator:   ",",
+			ThousandsSeparator: ".",
+			SymbolPosition:     "suffix",
+		},
+		"fr": {
+			DecimalSeparator:   ",",
+			ThousandsSeparator: " ",
+			SymbolPosition:     "suffix",
+		},
+		"es": {
+			DecimalSeparator:   ",",
+			ThousandsSeparator: ".",
+			SymbolPosition:     "suffix",
+		},
+		"it": {
+			DecimalSeparator:   ",",
+			ThousandsSeparator: ".",
+			SymbolPosition:     "suffix",
+		},
+		"nl": {
+			DecimalSeparator:   ",",
+			ThousandsSeparator: ".",
+			SymbolPosition:     "prefix",
+		},
+		"pt": {
+			DecimalSeparator:   ",",
+			ThousandsSeparator: ".",
+			SymbolPosition:     "prefix",
+		},
+		"ru": {
+			DecimalSeparator:   ",",
+			ThousandsSeparator: " ",
+			SymbolPosition:     "suffix",
+		},
+		"ja": {
+			DecimalSeparator:   ".",
+			ThousandsSeparator: ",",
+			SymbolPosition:     "prefix",
+		},
+		"zh": {
+			DecimalSeparator:   ".",
+			ThousandsSeparator: ",",
+			SymbolPosition:     "prefix",
+		},
+	}
+
+	if info, ok := locales[locale]; ok {
+		return info
+	}
+	return locales["en"] // Default to English
+}
+
+// Currency formats a number as a currency with the specified currency code and locale.
+//
+// Parameters:
+//   - number: The number to format as currency
+//   - in: Optional. The currency code (e.g., "USD", "EUR"). Default is "USD".
+//   - locale: Optional. The locale code (e.g., "en", "de"). Default is "en".
+//   - precision: Optional. The number of decimal places. Default is 2.
+//
+// Returns:
+//   - string: The formatted currency string
+//
+// Examples:
+//
+//	Number::currency(1000)                                // Returns "$1,000.00"
+//	Number::currency(1000, in: "EUR")                     // Returns "€1,000.00"
+//	Number::currency(1000, in: "EUR", locale: "de")       // Returns "1.000,00 €"
+//	Number::currency(1000, in: "EUR", locale: "de", precision: 0) // Returns "1.000 €"
+func Currency(number float64, options ...map[string]interface{}) string {
+	// Default values
+	currencyCode := "USD"
+	locale := "en"
+	precision := 2
+
+	// Parse options
+	if len(options) > 0 {
+		for key, value := range options[0] {
+			switch key {
+			case "in":
+				if code, ok := value.(string); ok && code != "" {
+					currencyCode = code
+				}
+			case "locale":
+				if loc, ok := value.(string); ok && loc != "" {
+					locale = loc
+				}
+			case "precision":
+				switch v := value.(type) {
+				case int:
+					if v >= 0 {
+						precision = v
+					}
+				case float64:
+					if v >= 0 {
+						precision = int(v)
+					}
+				}
+			}
+		}
+	}
+
+	// Get currency symbol and locale info
+	symbol := CurrencySymbol(currencyCode)
+	localeInfo := GetLocaleInfo(locale)
+
+	// Handle negative numbers
+	isNegative := number < 0
+	absNumber := math.Abs(number)
+
+	// Round the number for precision 0 (especially for JPY)
+	if precision == 0 {
+		absNumber = math.Round(absNumber)
+	}
+
+	// Format the number
+	formattedNumber := Format(absNumber, precision, localeInfo.DecimalSeparator, localeInfo.ThousandsSeparator)
+
+	// Add negative sign and currency symbol
+	if isNegative {
+		if localeInfo.SymbolPosition == "prefix" {
+			return "-" + symbol + formattedNumber
+		}
+		return "-" + formattedNumber + " " + symbol
+	}
+
+	// Add currency symbol for positive numbers
+	if localeInfo.SymbolPosition == "prefix" {
+		return symbol + formattedNumber
+	}
+	return formattedNumber + " " + symbol
+}
+
+// ForHumans converts a number to a human-readable string with the appropriate unit (thousand, million, billion, trillion).
+//
+// Parameters:
+//   - number: The number to format
+//   - precision: Optional. The number of decimal places to include. Default is 0.
+//
+// Returns:
+//   - string: The formatted number as a string with appropriate unit
+//
+// Examples:
+//
+//	ForHumans(1000)             // Returns "1 thousand"
+//	ForHumans(489939)           // Returns "490 thousand"
+//	ForHumans(1230000, 2)       // Returns "1.23 million"
+//	ForHumans(1000000000)       // Returns "1 billion"
+//	ForHumans(1500000000000, 1) // Returns "1.5 trillion"
+func ForHumans(number float64, precision ...int) string {
+	// Default precision is 0 if not provided
+	prec := 0
+	if len(precision) > 0 {
+		prec = precision[0]
+	}
+
+	absNumber := math.Abs(number)
+	sign := ""
+	if number < 0 {
+		sign = "-"
+	}
+
+	units := []string{"", "thousand", "million", "billion", "trillion", "quadrillion", "quintillion"}
+	unitIndex := 0
+
+	// Find the appropriate unit
+	for absNumber >= 1000 && unitIndex < len(units)-1 {
+		absNumber /= 1000
+		unitIndex++
+	}
+
+	// Format with the specified precision
+	if unitIndex == 0 {
+		// No unit for numbers less than 1000
+		return sign + fmt.Sprintf("%.*f", prec, absNumber)
+	}
+
+	// Format with the specified precision and add the unit
+	return sign + fmt.Sprintf("%.*f", prec, absNumber) + " " + units[unitIndex]
+}
+
+// FileSize formats a byte size to a human-readable string with the appropriate unit (B, KB, MB, GB, TB, PB).
+//
+// Parameters:
+//   - bytes: The size in bytes
+//   - precision: Optional. The number of decimal places to include. Default is 0.
+//
+// Returns:
+//   - string: The formatted file size as a string with appropriate unit
+//
+// Examples:
+//
+//	FileSize(1024)             // Returns "1 KB"
+//	FileSize(1024 * 1024)      // Returns "1 MB"
+//	FileSize(1024, 2)          // Returns "1.00 KB"
+//	FileSize(1500)             // Returns "1 KB"
+//	FileSize(1500, 2)          // Returns "1.46 KB"
+//	FileSize(1500000)          // Returns "1 MB"
+//	FileSize(1500000, 1)       // Returns "1.4 MB"
+func FileSize(bytes float64, precision ...int) string {
+	// Default precision is 0 if not provided
+	prec := 0
+	if len(precision) > 0 {
+		prec = precision[0]
+	}
+
+	absBytes := math.Abs(bytes)
+	sign := ""
+	if bytes < 0 {
+		sign = "-"
+	}
+
+	units := []string{"B", "KB", "MB", "GB", "TB", "PB"}
+	unitIndex := 0
+
+	// Find the appropriate unit
+	for absBytes >= 1024 && unitIndex < len(units)-1 {
+		absBytes /= 1024
+		unitIndex++
+	}
+
+	// Format with the specified precision
+	return sign + fmt.Sprintf("%.*f", prec, absBytes) + " " + units[unitIndex]
+}
+
+// Ordinal converts a number to its ordinal representation.
+//
+// Parameters:
+//   - number: The number to convert to an ordinal
+//
+// Returns:
+//   - string: The ordinal representation of the number
+//
+// Examples:
+//
+//	Ordinal(1)  // Returns "1st"
+//	Ordinal(2)  // Returns "2nd"
+//	Ordinal(3)  // Returns "3rd"
+//	Ordinal(4)  // Returns "4th"
+//	Ordinal(11) // Returns "11th"
+//	Ordinal(21) // Returns "21st"
+//	Ordinal(22) // Returns "22nd"
+//	Ordinal(23) // Returns "23rd"
+func Ordinal(number int) string {
+	if number < 0 {
+		number = -number // Handle negative numbers
+	}
+
+	// Special cases for 11, 12, 13
+	if number%100 >= 11 && number%100 <= 13 {
+		return fmt.Sprintf("%d%s", number, "th")
+	}
+
+	// Handle other cases based on the last digit
+	switch number % 10 {
+	case 1:
+		return fmt.Sprintf("%d%s", number, "st")
+	case 2:
+		return fmt.Sprintf("%d%s", number, "nd")
+	case 3:
+		return fmt.Sprintf("%d%s", number, "rd")
+	default:
+		return fmt.Sprintf("%d%s", number, "th")
+	}
+}
+
+// Pairs splits a number into pairs of ranges based on a given chunk size.
+//
+// Parameters:
+//   - total: The total number to split into pairs
+//   - chunkSize: The size of each chunk
+//   - options: Optional. A map containing additional options:
+//   - "offset": The offset to use for calculating the end of each range. Default is -1.
+//
+// Returns:
+//   - [][]int: An array of pairs, where each pair is an array of two integers representing
+//     the start and end of a range
+//
+// Examples:
+//
+//	Pairs(25, 10)                  // Returns [[0, 9], [10, 19], [20, 25]]
+//	Pairs(25, 10, map[string]int{"offset": 0}) // Returns [[0, 10], [10, 20], [20, 25]]
+func Pairs(total, chunkSize int, options ...map[string]int) [][]int {
+	// Default offset is -1 (end of range is chunkSize-1)
+	offset := -1
+
+	// Parse options
+	if len(options) > 0 {
+		if val, ok := options[0]["offset"]; ok {
+			offset = val
+		}
+	}
+
+	var result [][]int
+	start := 0
+
+	// If total is 0, return an empty slice
+	if total == 0 {
+		return result
+	}
+
+	for start < total {
+		end := start + chunkSize + offset
+		if end > total {
+			end = total
+		}
+		result = append(result, []int{start, end})
+		start += chunkSize
+	}
+
+	// Add the total as a separate pair if it's exactly divisible by chunkSize
+	// and the last pair doesn't already include the total
+	if start == total && len(result) > 0 && result[len(result)-1][1] != total {
+		result = append(result, []int{total, total})
+	}
+
+	return result
 }

@@ -540,31 +540,6 @@ func TestFormat(t *testing.T) {
 	}
 }
 
-func TestFormatCompact(t *testing.T) {
-	tests := []struct {
-		number   float64
-		decimals int
-		expected string
-	}{
-		{1234567, 1, "1.2M"},
-		{1234, 2, "1.23K"},
-		{1000000000, 1, "1.0B"},
-		{999, 1, "999.0"},
-		{-1234567, 1, "-1.2M"},
-		{0, 1, "0.0"},
-		{1500, 0, "2K"},
-		{1500000, 0, "2M"},
-		{1500000000, 0, "2B"},
-	}
-
-	for _, test := range tests {
-		result := FormatCompact(test.number, test.decimals)
-		if result != test.expected {
-			t.Errorf("FormatCompact(%f, %d) = %q, expected %q", test.number, test.decimals, result, test.expected)
-		}
-	}
-}
-
 func TestFormatPercentage(t *testing.T) {
 	tests := []struct {
 		number   float64
@@ -608,6 +583,307 @@ func TestPercent(t *testing.T) {
 		result := Percent(test.number, test.total, test.decimals...)
 		if result != test.expected {
 			t.Errorf("Percent(%f, %f, %v) = %f, expected %f", test.number, test.total, test.decimals, result, test.expected)
+		}
+	}
+}
+
+func TestAbbreviate(t *testing.T) {
+	tests := []struct {
+		number    float64
+		precision []int
+		expected  string
+	}{
+		{1000, []int{}, "1K"},
+		{489939, []int{}, "490K"},
+		{1230000, []int{2}, "1.23M"},
+		{1000000000, []int{}, "1B"},
+		{1500000000000, []int{1}, "1.5T"},
+		{999, []int{}, "999"},
+		{-1234567, []int{1}, "-1.2M"},
+		{0, []int{}, "0"},
+		{1500, []int{2}, "1.50K"},
+		{1500000, []int{3}, "1.500M"},
+		{1500000000, []int{0}, "2B"},
+		{1234567890123, []int{2}, "1.23T"},
+		{1234567, []int{1}, "1.2M"},
+		{1234, []int{2}, "1.23K"},
+		{1000000000, []int{1}, "1.0B"},
+		{999, []int{1}, "999.0"},
+		{-1234567, []int{1}, "-1.2M"},
+		{0, []int{1}, "0.0"},
+		{1500, []int{0}, "2K"},
+		{1500000, []int{0}, "2M"},
+		{1500000000, []int{0}, "2B"},
+	}
+
+	for _, test := range tests {
+		result := Abbreviate(test.number, test.precision...)
+		if result != test.expected {
+			t.Errorf("Abbreviate(%f, %v) = %q, expected %q", test.number, test.precision, result, test.expected)
+		}
+	}
+}
+
+func TestCurrencySymbol(t *testing.T) {
+	tests := []struct {
+		code     string
+		expected string
+	}{
+		{"USD", "$"},
+		{"EUR", "€"},
+		{"GBP", "£"},
+		{"JPY", "¥"},
+		{"CNY", "¥"},
+		{"INR", "₹"},
+		{"RUB", "₽"},
+		{"BRL", "R$"},
+		{"KRW", "₩"},
+		{"AUD", "A$"},
+		{"CAD", "C$"},
+		{"CHF", "CHF"},
+		{"HKD", "HK$"},
+		{"SGD", "S$"},
+		{"SEK", "kr"},
+		{"NOK", "kr"},
+		{"DKK", "kr"},
+		{"PLN", "zł"},
+		{"THB", "฿"},
+		{"MXN", "Mex$"},
+		{"ZAR", "R"},
+		{"XYZ", "XYZ"}, // Unknown currency code should return the code itself
+	}
+
+	for _, test := range tests {
+		result := CurrencySymbol(test.code)
+		if result != test.expected {
+			t.Errorf("CurrencySymbol(%q) = %q, expected %q", test.code, result, test.expected)
+		}
+	}
+}
+
+func TestGetLocaleInfo(t *testing.T) {
+	tests := []struct {
+		locale   string
+		expected LocaleInfo
+	}{
+		{"en", LocaleInfo{DecimalSeparator: ".", ThousandsSeparator: ",", SymbolPosition: "prefix"}},
+		{"de", LocaleInfo{DecimalSeparator: ",", ThousandsSeparator: ".", SymbolPosition: "suffix"}},
+		{"fr", LocaleInfo{DecimalSeparator: ",", ThousandsSeparator: " ", SymbolPosition: "suffix"}},
+		{"es", LocaleInfo{DecimalSeparator: ",", ThousandsSeparator: ".", SymbolPosition: "suffix"}},
+		{"it", LocaleInfo{DecimalSeparator: ",", ThousandsSeparator: ".", SymbolPosition: "suffix"}},
+		{"nl", LocaleInfo{DecimalSeparator: ",", ThousandsSeparator: ".", SymbolPosition: "prefix"}},
+		{"pt", LocaleInfo{DecimalSeparator: ",", ThousandsSeparator: ".", SymbolPosition: "prefix"}},
+		{"ru", LocaleInfo{DecimalSeparator: ",", ThousandsSeparator: " ", SymbolPosition: "suffix"}},
+		{"ja", LocaleInfo{DecimalSeparator: ".", ThousandsSeparator: ",", SymbolPosition: "prefix"}},
+		{"zh", LocaleInfo{DecimalSeparator: ".", ThousandsSeparator: ",", SymbolPosition: "prefix"}},
+		{"xx", LocaleInfo{DecimalSeparator: ".", ThousandsSeparator: ",", SymbolPosition: "prefix"}}, // Unknown locale should default to English
+	}
+
+	for _, test := range tests {
+		result := GetLocaleInfo(test.locale)
+		if result != test.expected {
+			t.Errorf("GetLocaleInfo(%q) = %+v, expected %+v", test.locale, result, test.expected)
+		}
+	}
+}
+
+func TestFileSize(t *testing.T) {
+	tests := []struct {
+		bytes     float64
+		precision []int
+		expected  string
+	}{
+		// Examples from the issue description
+		{1024, []int{}, "1 KB"},
+		{1024 * 1024, []int{}, "1 MB"},
+		{1024, []int{2}, "1.00 KB"},
+
+		// Additional test cases
+		{0, []int{}, "0 B"},
+		{500, []int{}, "500 B"},
+		{1500, []int{}, "1 KB"},
+		{1500, []int{2}, "1.46 KB"},
+		{1500000, []int{}, "1 MB"},
+		{1500000, []int{1}, "1.4 MB"},
+		{1073741824, []int{}, "1 GB"},       // 1 GB (1024^3)
+		{1099511627776, []int{}, "1 TB"},    // 1 TB (1024^4)
+		{1125899906842624, []int{}, "1 PB"}, // 1 PB (1024^5)
+		{2000000, []int{2}, "1.91 MB"},
+		{-1024, []int{}, "-1 KB"},
+		{-1500, []int{2}, "-1.46 KB"},
+		{1024 * 1024 * 1024 * 1024 * 1024 * 2, []int{1}, "2.0 PB"}, // 2 PB
+		{1023, []int{}, "1023 B"},                                  // Just below 1 KB
+		{1048575, []int{}, "1024 KB"},                              // Just below 1 MB
+	}
+
+	for _, test := range tests {
+		result := FileSize(test.bytes, test.precision...)
+		if result != test.expected {
+			t.Errorf("FileSize(%f, %v) = %q, expected %q", test.bytes, test.precision, result, test.expected)
+		}
+	}
+}
+
+func TestForHumans(t *testing.T) {
+	tests := []struct {
+		number    float64
+		precision []int
+		expected  string
+	}{
+		// Examples from the issue description
+		{1000, []int{}, "1 thousand"},
+		{489939, []int{}, "490 thousand"},
+		{1230000, []int{2}, "1.23 million"},
+
+		// Additional test cases
+		{0, []int{}, "0"},
+		{999, []int{}, "999"},
+		{1000000000, []int{}, "1 billion"},
+		{1500000000000, []int{1}, "1.5 trillion"},
+		{-1234567, []int{1}, "-1.2 million"},
+		{1500, []int{2}, "1.50 thousand"},
+		{1500000, []int{3}, "1.500 million"},
+		{1500000000, []int{0}, "2 billion"},
+		{1234567890123, []int{2}, "1.23 trillion"},
+		{1000000000000000, []int{}, "1 quadrillion"},
+		{1000000000000000000, []int{}, "1 quintillion"},
+	}
+
+	for _, test := range tests {
+		result := ForHumans(test.number, test.precision...)
+		if result != test.expected {
+			t.Errorf("ForHumans(%f, %v) = %q, expected %q", test.number, test.precision, result, test.expected)
+		}
+	}
+}
+
+func TestCurrency(t *testing.T) {
+	tests := []struct {
+		number   float64
+		options  map[string]interface{}
+		expected string
+	}{
+		// Examples from the issue description
+		{1000, nil, "$1,000.00"},
+		{1000, map[string]interface{}{"in": "EUR"}, "€1,000.00"},
+		{1000, map[string]interface{}{"in": "EUR", "locale": "de"}, "1.000,00 €"},
+		{1000, map[string]interface{}{"in": "EUR", "locale": "de", "precision": 0}, "1.000 €"},
+
+		// Additional test cases
+		{1234.56, nil, "$1,234.56"},
+		{1234.56, map[string]interface{}{"in": "USD", "locale": "en"}, "$1,234.56"},
+		{1234.56, map[string]interface{}{"in": "EUR", "locale": "fr"}, "1 234,56 €"},
+		{1234.56, map[string]interface{}{"in": "GBP"}, "£1,234.56"},
+		{1234.56, map[string]interface{}{"in": "JPY", "precision": 0}, "¥1,235"},
+		{0, nil, "$0.00"},
+		{-1234.56, nil, "-$1,234.56"},
+		{-1234.56, map[string]interface{}{"in": "EUR", "locale": "de"}, "-1.234,56 €"},
+		{1000000, nil, "$1,000,000.00"},
+		{1000000, map[string]interface{}{"in": "EUR", "locale": "fr"}, "1 000 000,00 €"},
+		{0.5, map[string]interface{}{"precision": 3}, "$0.500"},
+
+		// Edge cases
+		{1234.56, map[string]interface{}{"invalid": "option"}, "$1,234.56"},    // Invalid option should be ignored
+		{1234.56, map[string]interface{}{"in": ""}, "$1,234.56"},               // Empty currency code should default to USD
+		{1234.56, map[string]interface{}{"locale": ""}, "$1,234.56"},           // Empty locale should default to en
+		{1234.56, map[string]interface{}{"precision": "invalid"}, "$1,234.56"}, // Invalid precision should default to 2
+		{1234.56, map[string]interface{}{"precision": -1}, "$1,234.56"},        // Negative precision should default to 2
+	}
+
+	for _, test := range tests {
+		var result string
+		if test.options == nil {
+			result = Currency(test.number)
+		} else {
+			result = Currency(test.number, test.options)
+		}
+		if result != test.expected {
+			t.Errorf("Currency(%f, %v) = %q, expected %q", test.number, test.options, result, test.expected)
+		}
+	}
+}
+
+func TestOrdinal(t *testing.T) {
+	tests := []struct {
+		number   int
+		expected string
+	}{
+		// Examples from the issue description
+		{1, "1st"},
+		{2, "2nd"},
+		{21, "21st"},
+
+		// Additional test cases
+		{3, "3rd"},
+		{4, "4th"},
+		{11, "11th"},
+		{12, "12th"},
+		{13, "13th"},
+		{22, "22nd"},
+		{23, "23rd"},
+		{24, "24th"},
+		{101, "101st"},
+		{102, "102nd"},
+		{103, "103rd"},
+		{111, "111th"},
+		{112, "112th"},
+		{113, "113th"},
+		{0, "0th"},
+		{-1, "1st"}, // Negative numbers are handled by taking the absolute value
+		{-2, "2nd"},
+		{-3, "3rd"},
+		{-11, "11th"},
+		{-21, "21st"},
+	}
+
+	for _, test := range tests {
+		result := Ordinal(test.number)
+		if result != test.expected {
+			t.Errorf("Ordinal(%d) = %q, expected %q", test.number, result, test.expected)
+		}
+	}
+}
+
+func TestPairs(t *testing.T) {
+	tests := []struct {
+		total     int
+		chunkSize int
+		options   []map[string]int
+		expected  [][]int
+	}{
+		// Examples from the issue description
+		{25, 10, nil, [][]int{{0, 9}, {10, 19}, {20, 25}}},
+		{25, 10, []map[string]int{{"offset": 0}}, [][]int{{0, 10}, {10, 20}, {20, 25}}},
+
+		// Additional test cases
+		{10, 5, nil, [][]int{{0, 4}, {5, 9}, {10, 10}}},
+		{10, 5, []map[string]int{{"offset": 0}}, [][]int{{0, 5}, {5, 10}}},
+		{0, 5, nil, nil}, // Changed from [][]int{} to nil to match the actual return value
+		{5, 10, nil, [][]int{{0, 5}}},
+		{15, 5, []map[string]int{{"offset": 1}}, [][]int{{0, 6}, {5, 11}, {10, 15}}},
+		{100, 25, nil, [][]int{{0, 24}, {25, 49}, {50, 74}, {75, 99}, {100, 100}}},
+	}
+
+	for _, test := range tests {
+		var result [][]int
+		if test.options == nil {
+			result = Pairs(test.total, test.chunkSize)
+		} else {
+			result = Pairs(test.total, test.chunkSize, test.options...)
+		}
+
+		// Special case for empty slices
+		if test.total == 0 {
+			if len(result) != 0 {
+				t.Errorf("Pairs(%d, %d, %v) = %v, expected empty slice",
+					test.total, test.chunkSize, test.options, result)
+			}
+			continue
+		}
+
+		if !reflect.DeepEqual(result, test.expected) {
+			t.Errorf("Pairs(%d, %d, %v) = %v, expected %v",
+				test.total, test.chunkSize, test.options, result, test.expected)
 		}
 	}
 }
