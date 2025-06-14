@@ -886,7 +886,7 @@ func TestFormatWithCommas(t *testing.T) {
 	}
 }
 
-func TestRuneLength(t *testing.T) {
+func TestLength(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected int

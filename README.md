@@ -31,8 +31,8 @@ import "github.com/gflydev/utils/str"
 // ToString - Convert any value to string
 result := str.ToString(123) // "123"
 
-// RuneLength - Get the number of runes in a string
-result := str.RuneLength("hello") // 5
+// Length - Get the number of runes in a string
+result := str.Length("hello") // 5
 
 // Words - Split a string into words
 result := str.Words("fred, barney, & pebbles") // []string{"fred", "barney", "pebbles"}
