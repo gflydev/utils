@@ -59,16 +59,6 @@ func TestBefore(t *testing.T) {
 	}
 }
 
-func TestCurry(t *testing.T) {
-	add := func(a, b int) int { return a + b }
-	curriedAdd := Curry(add, 2)
-
-	add3 := curriedAdd(3)
-	if result := add3(4); result != 7 {
-		t.Errorf("Curry(add, 2)(3)(4) = %d, expected 7", result)
-	}
-}
-
 func TestDebounce(t *testing.T) {
 	counter := 0
 	f := func() { counter++ }

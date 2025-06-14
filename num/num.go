@@ -24,6 +24,7 @@ import (
 //	Clamp(10, 0, 5) // Returns 5 (n is above upper bound)
 //	Clamp(-3, 0, 5) // Returns 0 (n is below lower bound)
 //	Clamp(3, 0, 5)  // Returns 3 (n is within bounds)
+//	Clamp(5, 10, 0) // Returns 5 (lower > upper, bounds are swapped)
 func Clamp(n, lower, upper float64) float64 {
 	if lower > upper {
 		lower, upper = upper, lower
@@ -44,6 +45,8 @@ func Clamp(n, lower, upper float64) float64 {
 // Examples:
 //
 //	InRange(3, 2, 4)  // Returns true (n is within range)
+//	InRange(2, 2, 4)  // Returns true (n is at lower bound)
+//	InRange(4, 2, 4)  // Returns true (n is at upper bound)
 //	InRange(1, 2, 4)  // Returns false (n is below range)
 //	InRange(5, 2, 4)  // Returns false (n is above range)
 //	InRange(3, 4, 2)  // Returns true (start and end are automatically ordered)
@@ -65,9 +68,9 @@ func InRange(n, start, end float64) bool {
 //
 // Examples:
 //
-//	Random(1, 10)  // Returns a random number between 1 and 10
-//	Random(5, 5)   // Always returns 5
-//	Random(10, 1)  // Works the same as Random(1, 10)
+//	Random(1, 10)  // Returns a random number between 1 and 10 (inclusive)
+//	Random(5, 5)   // Always returns 5 (min equals max)
+//	Random(10, 1)  // Works the same as Random(1, 10) (min and max are automatically ordered)
 func Random(min, max int) int {
 	if min > max {
 		min, max = max, min // Swap if min > max
@@ -93,10 +96,14 @@ func Random(min, max int) int {
 //
 // Examples:
 //
-//	Round(4.7)    // Returns 5.0 (rounded to nearest integer)
-//	Round(4.7, 1) // Returns 4.7 (rounded to 1 decimal place)
+//	Round(4.7)     // Returns 5.0 (rounded to nearest integer)
+//	Round(4.3)     // Returns 4.0 (rounded to nearest integer)
+//	Round(4.5)     // Returns 5.0 (rounded to nearest integer)
+//	Round(-4.7)    // Returns -5.0 (rounded to nearest integer)
+//	Round(-4.3)    // Returns -4.0 (rounded to nearest integer)
+//	Round(4.7, 1)  // Returns 4.7 (rounded to 1 decimal place)
 //	Round(4.75, 1) // Returns 4.8 (rounded to 1 decimal place)
-//	Round(-4.7)   // Returns -5.0 (rounded to nearest integer)
+//	Round(4.749, 2) // Returns 4.75 (rounded to 2 decimal places)
 func Round(n float64, precision ...int) float64 {
 	if len(precision) == 0 {
 		return math.Round(n)
@@ -809,7 +816,7 @@ func Currency(number float64, options ...map[string]interface{}) string {
 	return formattedNumber + " " + symbol
 }
 
-// ForHumans converts a number to a human-readable string with the appropriate unit (thousand, million, billion, trillion).
+// ForHumans formats a number to a human-readable string with the appropriate unit (thousand, million, billion, etc.).
 //
 // Parameters:
 //   - number: The number to format

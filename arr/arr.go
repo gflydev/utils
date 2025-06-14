@@ -670,13 +670,19 @@ func Shuffle[T any](slice []T) []T {
 //   - n: The number of random elements to return
 //
 // Returns:
-//   - []T: A new array containing n randomly selected elements
+//   - []T: A new array containing n randomly selected elements without replacement
+//
+// Notes:
+//   - If n <= 0 or the slice is empty, an empty slice is returned
+//   - If n >= len(slice), a shuffled copy of the entire slice is returned
+//   - The original slice is not modified
+//   - The function uses the Shuffle function internally to randomize the elements
 //
 // Example:
 //
 //	Random([]int{1, 2, 3, 4, 5}, 3) -> [2, 4, 1]
 //	Random([]string{"a", "b", "c", "d"}, 2) -> ["c", "a"]
-//	Random([]int{1, 2}, 3) -> [2, 1]
+//	Random([]int{1, 2}, 3) -> [2, 1] (returns all elements in random order)
 func Random[T any](slice []T, n int) []T {
 	if n <= 0 || len(slice) == 0 {
 		return []T{}

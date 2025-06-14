@@ -182,6 +182,7 @@ func PostJSON(urlStr string, body, target any, headers map[string]string) error 
 //
 // Parameters:
 //   - url: The URL of the file to download
+//   - timeout: The timeout for the HTTP request in seconds
 //
 // Returns:
 //   - []byte: The contents of the downloaded file as a byte slice

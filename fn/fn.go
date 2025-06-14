@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// After creates a function that invokes func once it's called n or more times.
+// After creates a function that invokes the provided function once it's called n or more times.
 //
 // Parameters:
 //   - n: The number of calls before invoking the function
@@ -15,7 +15,23 @@ import (
 // Returns:
 //   - func() T: A function that will invoke fn after being called n or more times
 //
-// Example: fn := After(3, func() { fmt.Println("done") }); fn(); fn(); fn() // prints "done" on the third call
+// Example:
+//
+//	counter := 0
+//	f := After(3, func() int {
+//	    counter++
+//	    return counter
+//	})
+//
+//	// First two calls return 0
+//	result := f() // result: 0
+//	result = f()  // result: 0
+//
+//	// Third call executes the function and returns 1
+//	result = f()  // result: 1
+//
+//	// Fourth call returns 2
+//	result = f()  // result: 2
 func After[T any](n int, fn func() T) func() T {
 	var (
 		count int
@@ -36,7 +52,7 @@ func After[T any](n int, fn func() T) func() T {
 	}
 }
 
-// Before creates a function that invokes func, with the arguments provided, at most n times.
+// Before creates a function that invokes the provided function at most n times.
 //
 // Parameters:
 //   - n: The maximum number of times to invoke the function
@@ -45,7 +61,21 @@ func After[T any](n int, fn func() T) func() T {
 // Returns:
 //   - func() T: A function that will invoke fn at most n times and return the last result afterwards
 //
-// Example: fn := Before(3, func() { fmt.Println("called") }); fn(); fn(); fn(); fn() // prints "called" only 3 times
+// Example:
+//
+//	counter := 0
+//	f := Before(3, func() int {
+//	    counter++
+//	    return counter
+//	})
+//
+//	// First two calls return incrementing values
+//	result := f() // result: 1
+//	result = f()  // result: 2
+//
+//	// Third and subsequent calls return the last result
+//	result = f()  // result: 3
+//	result = f()  // result: 3 (function not called again)
 func Before[T any](n int, fn func() T) func() T {
 	var (
 		count  int
@@ -66,26 +96,7 @@ func Before[T any](n int, fn func() T) func() T {
 	}
 }
 
-// Curry creates a function that accepts arguments of func and either invokes func returning its result,
-// if at least arity number of arguments have been provided, or returns a function that accepts the remaining arguments.
-//
-// Parameters:
-//   - fn: The function to curry
-//   - arity: The number of arguments the function accepts
-//
-// Returns:
-//   - func(T) func(T) R: A curried function that accepts the first argument and returns a function that accepts the second argument
-//
-// Example: add := func(a, b int) int { return a + b }; addCurried := Curry(add, 2); add1 := addCurried(1); add1(2) -> 3
-func Curry[T, R any](fn func(T, T) R, arity int) func(T) func(T) R {
-	return func(a T) func(T) R {
-		return func(b T) R {
-			return fn(a, b)
-		}
-	}
-}
-
-// Debounce creates a debounced function that delays invoking func until after wait milliseconds have elapsed
+// Debounce creates a debounced function that delays invoking the provided function until after wait milliseconds have elapsed
 // since the last time the debounced function was invoked.
 //
 // Parameters:
@@ -95,7 +106,22 @@ func Curry[T, R any](fn func(T, T) R, arity int) func(T) func(T) R {
 // Returns:
 //   - func(): A debounced function that will only execute after wait duration has passed since its last invocation
 //
-// Example: fn := Debounce(func() { fmt.Println("called") }, 100); fn(); fn(); fn() // prints "called" only once after 100ms
+// Example:
+//
+//	counter := 0
+//	f := func() { counter++ }
+//	debounced := Debounce(f, 50*time.Millisecond)
+//
+//	// Call multiple times in quick succession
+//	debounced()
+//	debounced()
+//	debounced()
+//
+//	// Wait for the debounce period
+//	time.Sleep(100 * time.Millisecond)
+//
+//	// Counter is incremented only once
+//	// counter == 1
 func Debounce(fn func(), wait time.Duration) func() {
 	var timer *time.Timer
 	var mu sync.Mutex
@@ -316,7 +342,7 @@ func Compose[T any](fns ...func(T) T) func(T) T {
 // Returns:
 //   - func(T) T: A function that passes its input through the provided functions in sequence
 //
-// Example: addOne := func(x int) int { return x + 1 }; double := func(x int) int { return x * 2 }; doubleTheAddOne := Pipe(addOne, double); doubleTheAddOne(3) -> 8
+// Example: addOne := func(x int) int { return x + 1 }; double := func(x int) int { return x * 2 }; doubleTheAddOne := Pipe(addOne, double); doubleTheAddOne(3) -> 11
 func Pipe[T any](fns ...func(T) T) func(T) T {
 	return func(x T) T {
 		result := x

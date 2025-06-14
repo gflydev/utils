@@ -1,6 +1,6 @@
 # gFlyDev Utils (gflydev/utils)
 
-A modern Go utility library delivering modularity, performance, and extras. Inspired by [Lodash](https://lodash.com/) and [Laravel Helpers](https://laravel.com/docs/12.x/helpers), [Laravel String](https://laravel.com/docs/12.x/strings), [Laravel Collection](https://laravel.com/docs/12.x/collections).
+A modern Go utility library delivering modularity, performance, and extras. Inspired by [Lodash](https://lodash.com/) and [Laravel](https://laravel.com) ([Helpers](https://laravel.com/docs/12.x/helpers), [String](https://laravel.com/docs/12.x/strings), [Collection](https://laravel.com/docs/12.x/collections)).
 
 ## Overview
 
@@ -23,7 +23,7 @@ go get github.com/gflydev/utils
 
 ## Usage
 
-### String Utilities
+### String Utilities [Full document](str/README.md)
 
 ```go
 import "github.com/gflydev/utils/str"
@@ -204,7 +204,7 @@ result := str.Singular("apples") // "apple"
 result := str.Wordwrap("hello world", 5, "\n", true) // "hello\nworld"
 ```
 
-### Number Utilities
+### Number Utilities [Full document](num/README.md)
 
 ```go
 import "github.com/gflydev/utils/num"
@@ -287,7 +287,7 @@ result := num.FormatPercentage(0.1234, 2) // "12.34%"
 result := num.Percent(25, 100) // 25.0
 ```
 
-### Array Utilities
+### Array Utilities [Full document](arr/README.md)
 
 ```go
 import "github.com/gflydev/utils/arr"
@@ -459,7 +459,7 @@ result := arr.SetToSlice(map[string]struct{}{"a": {}, "b": {}}) // []string{"a",
 result := arr.SliceToSet([]string{"a", "b", "a"}) // map[string]struct{}{"a": {}, "b": {}}
 ```
 
-### Object Utilities
+### Object Utilities [Full document](obj/README.md)
 
 ```go
 import "github.com/gflydev/utils/obj"
@@ -522,7 +522,7 @@ result := obj.IsEmpty(map[string]int{}) // true
 result := obj.IsEqual(map[string]int{"a": 1}, map[string]int{"a": 1}) // true
 ```
 
-### Collection Utilities
+### Collection Utilities [Full document](col/README.md)
 
 ```go
 import (
@@ -819,7 +819,7 @@ result := col.Count([]int{1, 2, 3, 4, 5}) // 5
 result := col.Each([]int{1, 2, 3}, func(n int) bool { fmt.Println(n); return true }) // []int{1, 2, 3}
 ```
 
-### Function Utilities
+### Function Utilities [Full document](fn/README.md)
 
 ```go
 import (
@@ -840,12 +840,6 @@ f() // "called"
 f() // "called"
 f() // "called"
 f() // "called" (returns the result of the last successful invocation)
-
-// Curry
-add := func(a, b int) int { return a + b }
-addCurried := fn.Curry(add, 2)
-add1 := addCurried(1)
-add1(2) // 3
 
 // Debounce
 f := fn.Debounce(func() { fmt.Println("called") }, 100*time.Millisecond)
@@ -965,7 +959,7 @@ result := TransformBatch(input, transformerFn, batchSize)
 // batches is [][]int{{1, 2, 3}, {4, 5, 6}, {7}}
 ```
 
-### Sequence Utilities
+### Sequence Utilities [Full document](seq/README.md)
 
 ```go
 import (
@@ -1035,7 +1029,7 @@ result := nestedSeq.Flatten().Value() // []any{1, 2, 3, 4}
 result := s.Concat(seq.New(5, 6)).Value() // []int{1, 2, 3, 4, 5, 6}
 ```
 
-### Network Utilities
+### Network Utilities [Full document](net/README.md)
 
 ```go
 import "github.com/gflydev/utils/net"

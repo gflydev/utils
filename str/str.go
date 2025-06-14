@@ -135,8 +135,9 @@ func WordsPattern(s, pattern string) []string {
 	return words
 }
 
-// CamelCase converts a string to camelCase format where the first word is lowercase
-// and subsequent words are capitalized with no separators.
+// CamelCase converts a string to camelCase format.
+// It splits the string into words, converts the first word to lowercase,
+// and capitalizes the first letter of each subsequent word with no separators.
 //
 // Parameters:
 //   - s: The string to convert to camelCase
@@ -255,17 +256,19 @@ func PascalCase(s string) string {
 
 // Headline converts a string to Title Case with spaces between words.
 // It splits the string into words, capitalizes each word, and joins them with spaces.
+// This function handles various word boundaries including camelCase, snake_case, and kebab-case.
 //
 // Parameters:
 //   - s: The string to convert to headline format
 //
 // Returns:
-//   - string: The headline formatted string
+//   - string: The headline formatted string with each word capitalized and separated by spaces
 //
 // Example:
 //
 //	Headline("steve_jobs") -> "Steve Jobs"
 //	Headline("EmailNotificationSent") -> "Email Notification Sent"
+//	Headline("hello-world") -> "Hello World"
 func Headline(s string) string {
 	items := Words(s)
 	for i := range items {
@@ -275,7 +278,7 @@ func Headline(s string) string {
 }
 
 // Capitalize capitalizes the first character of a string.
-// It leaves the rest of the string unchanged.
+// It leaves the rest of the string unchanged. If the string is empty, it returns an empty string.
 //
 // Parameters:
 //   - s: The string to capitalize
@@ -299,6 +302,7 @@ func Capitalize(s string) string {
 }
 
 // EndsWith determines if a string ends with any of the given substrings.
+// It checks each substring and returns true as soon as it finds a match.
 //
 // Parameters:
 //   - s: The string to check
@@ -314,6 +318,7 @@ func Capitalize(s string) string {
 //	EndsWith("abc", "abc") -> true
 //	EndsWith("abc", "d") -> false
 //	EndsWith("abc", "a", "b", "c") -> true
+//	EndsWith("", "") -> true
 func EndsWith(s string, substrings ...string) bool {
 	for _, substr := range substrings {
 		if strings.HasSuffix(s, substr) {
@@ -324,6 +329,7 @@ func EndsWith(s string, substrings ...string) bool {
 }
 
 // StartsWith checks if a string starts with any of the given substrings.
+// It checks each substring and returns true as soon as it finds a match.
 //
 // Parameters:
 //   - s: The string to check
@@ -339,6 +345,7 @@ func EndsWith(s string, substrings ...string) bool {
 //	StartsWith("abc", "abc") -> true
 //	StartsWith("abc", "d") -> false
 //	StartsWith("abc", "a", "b", "c") -> true
+//	StartsWith("", "") -> true
 func StartsWith(s string, substrings ...string) bool {
 	for _, substr := range substrings {
 		if strings.HasPrefix(s, substr) {
@@ -1517,16 +1524,14 @@ func Ascii(s string) string {
 //	Limit("hello world", 0) -> "" (empty string)
 //	Limit("", 5) -> "" (empty input)
 //	Limit("Hello world", 5, "...") -> "Hello..."
-func Limit(s string, limit int, options ...any) string {
+func Limit(s string, limit int, options ...string) string {
 	if s == "" || limit == 0 {
 		return ""
 	}
 
 	tails := ""
-
-	switch options[0].(type) {
-	case string:
-		tails = options[0].(string)
+	if len(options) > 0 {
+		tails = options[0]
 	}
 
 	runes := []rune(s)
@@ -1898,7 +1903,7 @@ func Apa(s string) string {
 	}
 
 	// Capitalize the first letter of the first word and lowercase the rest of the word
-	if len(words[0]) > 0 {
+	if words[0] != "" {
 		r := []rune(strings.ToLower(words[0]))
 		r[0] = unicode.ToUpper(r[0])
 		words[0] = string(r)
@@ -1906,7 +1911,8 @@ func Apa(s string) string {
 
 	// For the rest of the words, handle special cases
 	for i := 1; i < len(words); i++ {
-		if len(words[i]) == 1 && unicode.IsUpper([]rune(words[i])[0]) {
+		r, _ := utf8.DecodeRuneInString(words[i])
+		if len(words[i]) == 1 && unicode.IsUpper(r) {
 			words[i] = strings.ToLower(words[i])
 		} else if words[i] == "A" {
 			words[i] = "a"
@@ -2614,7 +2620,7 @@ type ExcerptOptions struct {
 //	Excerpt("This is my name", "my", ExcerptOptions{Radius: 5, Omission: "(...)"}) -> "(...)is my name"
 //	Excerpt("This is my name", "foo", ExcerptOptions{}) -> "This is my name"
 //	Excerpt("", "foo", ExcerptOptions{}) -> ""
-func Excerpt(s string, phrase string, options ...ExcerptOptions) string {
+func Excerpt(s, phrase string, options ...ExcerptOptions) string {
 	if s == "" || phrase == "" {
 		return s
 	}
@@ -2705,7 +2711,7 @@ func IsJson(s string) bool {
 //	Match("/bar/", "foo bar") -> "bar"
 //	Match("/foo (.*)/", "foo bar") -> "bar"
 //	Match("/xyz/", "foo bar") -> ""
-func Match(pattern string, s string) string {
+func Match(pattern, s string) string {
 	// Remove leading and trailing slashes if they exist
 	if len(pattern) >= 2 && pattern[0] == '/' && pattern[len(pattern)-1] == '/' {
 		pattern = pattern[1 : len(pattern)-1]
@@ -2748,7 +2754,7 @@ func Match(pattern string, s string) string {
 //	MatchAll("/bar/", "bar foo bar") -> ["bar", "bar"]
 //	MatchAll("/f(\\w*)/", "bar fun bar fly") -> ["un", "ly"]
 //	MatchAll("/xyz/", "foo bar") -> []
-func MatchAll(pattern string, s string) []string {
+func MatchAll(pattern, s string) []string {
 	// Return empty slice for empty pattern or empty string
 	if pattern == "" || s == "" {
 		return []string{}
