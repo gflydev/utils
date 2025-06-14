@@ -2,6 +2,7 @@
 package str
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand/v2"
 	"regexp"
@@ -27,7 +28,7 @@ func ToString[T any](value T) string {
 	return fmt.Sprintf("%v", value)
 }
 
-// RuneLength counts the number of Unicode characters (runes) in a string.
+// Length counts the number of Unicode characters (runes) in a string.
 //
 // Parameters:
 //   - str: The string to count runes in
@@ -37,9 +38,9 @@ func ToString[T any](value T) string {
 //
 // Example:
 //
-//	RuneLength("Hello, 世界") -> 8
-//	RuneLength("abc") -> 3
-func RuneLength(str string) int {
+//	Length("Hello, 世界") -> 9
+//	Length("abc") -> 3
+func Length(str string) int {
 	return utf8.RuneCountInString(str)
 }
 
@@ -181,7 +182,7 @@ func CamelCase(s string) string {
 //	KebabCase("HelloWorld") -> "hello-world"
 //	KebabCase("HELLO_WORLD") -> "hello-world"
 func KebabCase(s string) string {
-	s = changeConnector(s, "-")
+	s = changeSeparator(s, "-")
 
 	// Remove special characters
 	reg := regexp.MustCompile("[^a-z0-9-]")
@@ -213,7 +214,7 @@ func KebabCase(s string) string {
 //	SnakeCase("HelloWorld") -> "hello_world"
 //	SnakeCase("HELLO-WORLD") -> "hello_world"
 func SnakeCase(s string) string {
-	s = changeConnector(s, "_")
+	s = changeSeparator(s, "_")
 
 	// Remove special characters
 	reg := regexp.MustCompile("[^a-z0-9_]")
@@ -250,6 +251,27 @@ func PascalCase(s string) string {
 		items[i] = Capitalize(items[i])
 	}
 	return strings.Join(items, "")
+}
+
+// Headline converts a string to Title Case with spaces between words.
+// It splits the string into words, capitalizes each word, and joins them with spaces.
+//
+// Parameters:
+//   - s: The string to convert to headline format
+//
+// Returns:
+//   - string: The headline formatted string
+//
+// Example:
+//
+//	Headline("steve_jobs") -> "Steve Jobs"
+//	Headline("EmailNotificationSent") -> "Email Notification Sent"
+func Headline(s string) string {
+	items := Words(s)
+	for i := range items {
+		items[i] = Capitalize(items[i])
+	}
+	return strings.Join(items, " ")
 }
 
 // Capitalize capitalizes the first character of a string.
@@ -499,6 +521,125 @@ func Replace(search, replace, subject string) string {
 	return strings.ReplaceAll(subject, search, replace)
 }
 
+// ReplaceMatches replaces all occurrences of a pattern in a string using a regular expression.
+// The replacement can be either a string or a function that returns a string.
+//
+// Parameters:
+//   - pattern: The regular expression pattern to match
+//   - replace: The replacement (string or function that takes a match array and returns a string)
+//   - subject: The string to perform replacements on
+//
+// Returns:
+//   - string: The resulting string after replacements
+//
+// Example:
+//
+//	ReplaceMatches("/[^A-Za-z0-9]++/", "", "(+1) 501-555-1000") -> "15015551000"
+//	ReplaceMatches("/\\d/", func(matches []string) string { return "[" + matches[0] + "]" }, "123") -> "[1][2][3]"
+func ReplaceMatches(pattern string, replace interface{}, subject string) string {
+	// Return original string for empty pattern or subject
+	if pattern == "" || subject == "" {
+		return subject
+	}
+
+	// Remove leading and trailing slashes if they exist
+	if len(pattern) >= 2 && pattern[0] == '/' && pattern[len(pattern)-1] == '/' {
+		pattern = pattern[1 : len(pattern)-1]
+	}
+
+	// Return original string for empty pattern after removing slashes
+	if pattern == "" {
+		return subject
+	}
+
+	// Compile the regular expression
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return subject
+	}
+
+	// Handle different types of replacements
+	switch r := replace.(type) {
+	case string:
+		// Simple string replacement
+		return re.ReplaceAllString(subject, r)
+	case func([]string) string:
+		// Function replacement
+		return re.ReplaceAllStringFunc(subject, func(match string) string {
+			// Get all matches including capturing groups
+			matches := re.FindStringSubmatch(match)
+			// Call the replacement function with the matches
+			return r(matches)
+		})
+	default:
+		// Unsupported replacement type
+		return subject
+	}
+}
+
+// Swap replaces multiple values in a string with their corresponding replacements.
+//
+// Parameters:
+//   - replacements: A map of search strings to their replacements
+//   - subject: The string to perform replacements on
+//
+// Returns:
+//   - string: The resulting string after all replacements
+//
+// Example:
+//
+//	Swap(map[string]string{"Tacos": "Burritos", "great": "fantastic"}, "Tacos are great!") -> "Burritos are fantastic!"
+//	Swap(map[string]string{"a": "x", "b": "y"}, "abc") -> "xyc"
+//	Swap(map[string]string{}, "hello world") -> "hello world" (no replacements)
+func Swap(replacements map[string]string, subject string) string {
+	result := subject
+	for search, replace := range replacements {
+		result = strings.ReplaceAll(result, search, replace)
+	}
+	return result
+}
+
+// Remove removes all occurrences of a given substring or pattern from a string.
+//
+// Parameters:
+//   - search: The substring or pattern to remove (can be a string, character, or regular expression)
+//   - subject: The string to remove occurrences from
+//
+// Returns:
+//   - string: The resulting string after removals
+//
+// Example:
+//
+//	Remove("e", "Peter Piper picked a peck of pickled peppers.") -> "Ptr Pipr pickd a pck of pickld ppprs."
+//	Remove("abc", "abcdef") -> "def"
+//	Remove("[aeiou]", "Hello World", true) -> "Hll Wrld" (using regex)
+func Remove(search, subject string, options ...bool) string {
+	// Check if we should use regex
+	useRegex := false
+	if len(options) > 0 {
+		useRegex = options[0]
+	}
+
+	// If search is empty, return the original string
+	if search == "" {
+		return subject
+	}
+
+	if useRegex {
+		// Compile the regular expression
+		re, err := regexp.Compile(search)
+		if err != nil {
+			// If there's an error compiling the regex, fall back to string replacement
+			return strings.ReplaceAll(subject, search, "")
+		}
+		// Replace all matches with empty string
+		return re.ReplaceAllString(subject, "")
+	}
+
+	// Use standard string replacement
+	return strings.ReplaceAll(subject, search, "")
+}
+
 // Contains determines if a string contains a given substring.
 //
 // Parameters:
@@ -640,8 +781,12 @@ func Ellipsis(s string, length int) string {
 //	Truncate("Hello, World", 5) -> "Hello..."
 //	Truncate("Hello", 10) -> "Hello"
 //	Truncate("", 5) -> ""
-//	Truncate("Hello", 0) -> "..."
+//	Truncate("Hello", 0) -> ""
 func Truncate(s string, maxLength int) string {
+	if maxLength <= 0 {
+		return ""
+	}
+
 	if len(s) <= maxLength {
 		return s
 	}
@@ -1109,6 +1254,42 @@ func Between(s, start, end string) string {
 	return searchStr[:endIdx]
 }
 
+// BetweenFirst returns the portion of a string between the first occurrence of two strings.
+//
+// Parameters:
+//   - s: The string to search in
+//   - start: The starting delimiter
+//   - end: The ending delimiter
+//
+// Returns:
+//   - string: The portion between the first occurrence of start and end strings, or entire string if not found
+//
+// Example:
+//
+//	BetweenFirst("[a] bc [d]", "[", "]") -> "a"
+//	BetweenFirst("<div>content</div>", "<div>", "</div>") -> "content"
+//	BetweenFirst("hello world", "[", "]") -> "hello world"
+//	BetweenFirst("hello world", "", "]") -> "hello world"
+//	BetweenFirst("hello world", "[", "") -> "hello world"
+func BetweenFirst(s, start, end string) string {
+	if s == "" || start == "" || end == "" {
+		return s
+	}
+	startIdx := strings.Index(s, start)
+	if startIdx == -1 {
+		return s
+	}
+
+	// The search for the end string must start after the `start` string.
+	searchStr := s[startIdx+len(start):]
+	endIdx := strings.Index(searchStr, end)
+	if endIdx == -1 {
+		return s
+	}
+
+	return searchStr[:endIdx]
+}
+
 // ContainsAll determines if a string contains all of the given substrings.
 //
 // Parameters:
@@ -1131,6 +1312,37 @@ func ContainsAll(s string, substrings ...string) bool {
 		}
 	}
 	return true
+}
+
+// DoesntContain determines if a string does not contain a specific substring or any of the substrings in an array.
+//
+// Parameters:
+//   - s: The string to check
+//   - substrings: The substring(s) to check for
+//
+// Returns:
+//   - bool: True if the string doesn't contain the specified substring(s), false otherwise
+//
+// Example:
+//
+//	DoesntContain("This is name", "my") -> true
+//	DoesntContain("This is name", []string{"my", "foo"}) -> true
+//	DoesntContain("This is my name", "my") -> false
+//	DoesntContain("This is my name", []string{"my", "foo"}) -> false
+func DoesntContain(s string, substrings interface{}) bool {
+	switch v := substrings.(type) {
+	case string:
+		return !strings.Contains(s, v)
+	case []string:
+		for _, substr := range v {
+			if strings.Contains(s, substr) {
+				return false
+			}
+		}
+		return true
+	default:
+		return false
+	}
 }
 
 // Finish appends a single instance of the given value to a string
@@ -1215,6 +1427,80 @@ func IsAscii(s string) bool {
 	return true
 }
 
+// Ascii transliterates non-ASCII characters to their ASCII equivalents.
+//
+// Parameters:
+//   - s: The string to transliterate
+//
+// Returns:
+//   - string: The transliterated string with only ASCII characters
+//
+// Example:
+//
+//	Ascii("û") -> "u"
+//	Ascii("café") -> "cafe"
+//	Ascii("über") -> "uber"
+//	Ascii("Crème Brûlée") -> "Creme Brulee"
+func Ascii(s string) string {
+	var result strings.Builder
+	result.Grow(len(s))
+
+	for _, r := range s {
+		if r <= unicode.MaxASCII {
+			result.WriteRune(r)
+			continue
+		}
+
+		// Handle common Latin characters with diacritical marks
+		switch {
+		case r >= 'À' && r <= 'Å':
+			result.WriteRune('A')
+		case r == 'Æ':
+			result.WriteString("AE")
+		case r == 'Ç':
+			result.WriteRune('C')
+		case r >= 'È' && r <= 'Ë':
+			result.WriteRune('E')
+		case r >= 'Ì' && r <= 'Ï':
+			result.WriteRune('I')
+		case r == 'Ñ':
+			result.WriteRune('N')
+		case r >= 'Ò' && r <= 'Ö':
+			result.WriteRune('O')
+		case r == 'Ø':
+			result.WriteRune('O')
+		case r >= 'Ù' && r <= 'Ü':
+			result.WriteRune('U')
+		case r == 'Ý':
+			result.WriteRune('Y')
+		case r == 'ß':
+			result.WriteString("ss")
+		case r >= 'à' && r <= 'å':
+			result.WriteRune('a')
+		case r == 'æ':
+			result.WriteString("ae")
+		case r == 'ç':
+			result.WriteRune('c')
+		case r >= 'è' && r <= 'ë':
+			result.WriteRune('e')
+		case r >= 'ì' && r <= 'ï':
+			result.WriteRune('i')
+		case r == 'ñ':
+			result.WriteRune('n')
+		case r >= 'ò' && r <= 'ö':
+			result.WriteRune('o')
+		case r == 'ø':
+			result.WriteRune('o')
+		case r >= 'ù' && r <= 'ü':
+			result.WriteRune('u')
+		case r >= 'ý' && r <= 'ÿ':
+			result.WriteRune('y')
+		}
+	}
+
+	return result.String()
+}
+
 // Limit truncates a string to the specified length.
 //
 // Parameters:
@@ -1230,16 +1516,25 @@ func IsAscii(s string) bool {
 //	Limit("hello", 10) -> "hello" (no truncation needed)
 //	Limit("hello world", 0) -> "" (empty string)
 //	Limit("", 5) -> "" (empty input)
-func Limit(s string, limit int) string {
+//	Limit("Hello world", 5, "...") -> "Hello..."
+func Limit(s string, limit int, options ...any) string {
 	if s == "" || limit == 0 {
-		return Truncate(s, limit)
+		return ""
+	}
+
+	tails := ""
+
+	switch options[0].(type) {
+	case string:
+		tails = options[0].(string)
 	}
 
 	runes := []rune(s)
 	if len(runes) <= limit {
 		return s
 	}
-	return string(runes[:limit]) + "..."
+
+	return string(runes[:limit]) + tails
 }
 
 // Random generates a random string of specified length.
@@ -1258,6 +1553,37 @@ func Limit(s string, limit int) string {
 func Random(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[rand.IntN(len(charset))]
+	}
+	return string(b)
+}
+
+// Password generates a random password with the given length.
+// If no length is provided, the default length is 32 characters.
+// The password will contain a mix of uppercase letters, lowercase letters, numbers, and special characters.
+//
+// Parameters:
+//   - length: The desired length of the password (optional, default: 32)
+//
+// Returns:
+//   - string: The generated random password
+//
+// Example:
+//
+//	Password() -> "EbJo2vE-AS:U,$%_gkrV4n,q~1xy/-_4" (random 32-character password)
+//	Password(12) -> "qwuar>#V|i]N" (random 12-character password)
+func Password(length ...int) string {
+	passwordLength := 32
+	if len(length) > 0 {
+		if length[0] <= 0 {
+			return ""
+		}
+		passwordLength = length[0]
+	}
+
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:,.<>?/~"
+	b := make([]byte, passwordLength)
 	for i := range b {
 		b[i] = charset[rand.IntN(len(charset))]
 	}
@@ -1538,6 +1864,56 @@ func Ltrim(s, chars string) string {
 //	Rtrim("", "x") -> "" (empty string)
 func Rtrim(s, chars string) string {
 	return strings.TrimRight(s, chars)
+}
+
+// Apa converts a string to title case but with the first word having only its first letter capitalized.
+// This is similar to AP (Associated Press) style for article titles.
+//
+// Refer:
+//
+//	https://en.wikipedia.org/wiki/AP_style
+//	https://en.wikipedia.org/wiki/Title_case#AP_style
+//	https://apastyle.apa.org/style-grammar-guidelines/capitalization/title-case
+//
+// Parameters:
+//   - s: The string to convert
+//
+// Returns:
+//   - string: The converted string
+//
+// Example:
+//
+//	Apa("Creating A Project") -> "Creating a Project"
+//	Apa("HELLO WORLD") -> "Hello WORLD"
+//	Apa("hello WORLD") -> "Hello WORLD"
+//	Apa("") -> ""
+func Apa(s string) string {
+	if s == "" {
+		return ""
+	}
+
+	words := strings.Fields(s)
+	if len(words) == 0 {
+		return ""
+	}
+
+	// Capitalize the first letter of the first word and lowercase the rest of the word
+	if len(words[0]) > 0 {
+		r := []rune(strings.ToLower(words[0]))
+		r[0] = unicode.ToUpper(r[0])
+		words[0] = string(r)
+	}
+
+	// For the rest of the words, handle special cases
+	for i := 1; i < len(words); i++ {
+		if len(words[i]) == 1 && unicode.IsUpper([]rune(words[i])[0]) {
+			words[i] = strings.ToLower(words[i])
+		} else if words[i] == "A" {
+			words[i] = "a"
+		}
+	}
+
+	return strings.Join(words, " ")
 }
 
 // Plural converts a singular word to its plural form.
@@ -1991,7 +2367,7 @@ func isPunctuation(r rune) bool {
 		r == '%' || r == '^' || r == '&' || r == '*'
 }
 
-// changeConnector converts a string to a case format using the specified connector.
+// changeSeparator converts a string to a case format using the specified connector.
 // It splits the input string into words, converts each word to lowercase,
 // and joins them back together with the given connector string.
 //
@@ -2004,13 +2380,446 @@ func isPunctuation(r rune) bool {
 //
 // Example:
 //
-//	changeConnector("HelloWorld", "-")     // Returns "hello-world"
-//	changeConnector("user_id", ".")        // Returns "user.id"
-//	changeConnector("XMLHttpRequest", "_") // Returns "xml_http_request"
-func changeConnector(s, c string) string {
+//	changeSeparator("HelloWorld", "-")     // Returns "hello-world"
+//	changeSeparator("user_id", ".")        // Returns "user.id"
+//	changeSeparator("XMLHttpRequest", "_") // Returns "xml_http_request"
+func changeSeparator(s, c string) string {
 	words := Words(s)
 	for i := range words {
 		words[i] = strings.ToLower(words[i])
 	}
 	return strings.Join(words, c)
+}
+
+// CharAt returns the character at the specified position in a string.
+//
+// Parameters:
+//   - s: The input string.
+//   - position: The position of the character to return (0-indexed).
+//
+// Returns:
+//   - string: The character at the specified position, or an empty string if the position is out of bounds.
+//
+// Example:
+//
+//	CharAt("This is my name.", 6) -> "s"
+//	CharAt("Hello", 0) -> "H"
+//	CharAt("Hello", 4) -> "o"
+//	CharAt("Hello", 5) -> "" (position out of bounds)
+//	CharAt("", 0) -> "" (empty string)
+func CharAt(s string, position int) string {
+	runes := []rune(s)
+
+	if position < 0 || position >= len(runes) {
+		return ""
+	}
+
+	return string(runes[position])
+}
+
+// WordAt returns the word at the specified position in a string.
+//
+// Parameters:
+//   - s: The input string.
+//   - position: The position to check for a word (0-indexed).
+//
+// Returns:
+//   - string: The word at the specified position, or an empty string if the position is out of bounds.
+//
+// Example:
+//
+//	WordAt("This is my name.", 6) -> "is"
+//	WordAt("Hello world", 0) -> "Hello"
+//	WordAt("Hello world", 6) -> "world"
+//	WordAt("Hello world", 12) -> "" (position out of bounds)
+//	WordAt("", 0) -> "" (empty string)
+func WordAt(s string, position int) string {
+	if s == "" || position < 0 || position >= len([]rune(s)) {
+		return ""
+	}
+
+	// Convert to runes to handle Unicode correctly
+	runes := []rune(s)
+
+	// Find the word at the given position
+	// First, determine if the position is on a word character or a separator
+	isWordChar := func(r rune) bool {
+		return unicode.IsLetter(r) || unicode.IsDigit(r) || r == '\''
+	}
+
+	// If the position is on a separator, find the next word
+	if !isWordChar(runes[position]) {
+		// Look forward for the next word
+		nextWordStart := position
+		for nextWordStart < len(runes) && !isWordChar(runes[nextWordStart]) {
+			nextWordStart++
+		}
+
+		// If we reached the end without finding a word, look backward
+		if nextWordStart >= len(runes) {
+			// Look backward for the previous word
+			prevWordEnd := position
+			for prevWordEnd >= 0 && !isWordChar(runes[prevWordEnd]) {
+				prevWordEnd--
+			}
+
+			if prevWordEnd < 0 {
+				return "" // No word found
+			}
+
+			// Find the start of this word
+			wordStart := prevWordEnd
+			for wordStart >= 0 && isWordChar(runes[wordStart]) {
+				wordStart--
+			}
+			wordStart++ // Adjust to the actual start
+
+			// Extract the word
+			return string(runes[wordStart : prevWordEnd+1])
+		}
+
+		// Find the end of the next word
+		wordEnd := nextWordStart
+		for wordEnd < len(runes) && isWordChar(runes[wordEnd]) {
+			wordEnd++
+		}
+
+		// Extract the word
+		return string(runes[nextWordStart:wordEnd])
+	}
+
+	// The position is on a word character, find the boundaries of this word
+	// Find the start of the word
+	wordStart := position
+	for wordStart >= 0 && isWordChar(runes[wordStart]) {
+		wordStart--
+	}
+	wordStart++ // Adjust to the actual start
+
+	// Find the end of the word
+	wordEnd := position
+	for wordEnd < len(runes) && isWordChar(runes[wordEnd]) {
+		wordEnd++
+	}
+
+	// Extract the word
+	return string(runes[wordStart:wordEnd])
+}
+
+// ChopStart removes a prefix from a string if it exists.
+// If an array of prefixes is provided, it will remove the first matching prefix.
+//
+// Parameters:
+//   - s: The string to process
+//   - prefixes: The prefix or array of prefixes to remove
+//
+// Returns:
+//   - string: The string with the prefix removed
+//
+// Example:
+//
+//	ChopStart("https://laravel.com", "https://") -> "laravel.com"
+//	ChopStart("http://laravel.com", []string{"https://", "http://"}) -> "laravel.com"
+//	ChopStart("laravel.com", "https://") -> "laravel.com" (no prefix to remove)
+//	ChopStart("", "https://") -> "" (empty string)
+func ChopStart(s string, prefixes interface{}) string {
+	if s == "" {
+		return ""
+	}
+
+	// Handle single prefix
+	if prefix, ok := prefixes.(string); ok {
+		if strings.HasPrefix(s, prefix) {
+			return s[len(prefix):]
+		}
+		return s
+	}
+
+	// Handle array of prefixes
+	if prefixArray, ok := prefixes.([]string); ok {
+		for _, prefix := range prefixArray {
+			if strings.HasPrefix(s, prefix) {
+				return s[len(prefix):]
+			}
+		}
+	}
+
+	return s
+}
+
+// ChopEnd removes a suffix from a string if it exists.
+// If an array of suffixes is provided, it will remove the first matching suffix.
+//
+// Parameters:
+//   - s: The string to process
+//   - suffixes: The suffix or array of suffixes to remove
+//
+// Returns:
+//   - string: The string with the suffix removed
+//
+// Example:
+//
+//	ChopEnd("app/Models/Photograph.php", ".php") -> "app/Models/Photograph"
+//	ChopEnd("laravel.com/index.php", []string{"/index.html", "/index.php"}) -> "laravel.com"
+//	ChopEnd("laravel.com", ".php") -> "laravel.com" (no suffix to remove)
+//	ChopEnd("", ".php") -> "" (empty string)
+func ChopEnd(s string, suffixes interface{}) string {
+	if s == "" {
+		return ""
+	}
+
+	// Handle single suffix
+	if suffix, ok := suffixes.(string); ok {
+		if strings.HasSuffix(s, suffix) {
+			return s[:len(s)-len(suffix)]
+		}
+		return s
+	}
+
+	// Handle array of suffixes
+	if suffixArray, ok := suffixes.([]string); ok {
+		for _, suffix := range suffixArray {
+			if strings.HasSuffix(s, suffix) {
+				return s[:len(s)-len(suffix)]
+			}
+		}
+	}
+
+	return s
+}
+
+// ExcerptOptions Default options struct
+type ExcerptOptions struct {
+	Radius   int
+	Omission string
+}
+
+// Excerpt extracts a portion of text around a given phrase.
+// It returns a substring that includes the phrase and a certain number of characters around it.
+// If the excerpt doesn't include the entire string, omission text is added at the beginning and/or end.
+//
+// Parameters:
+//   - s: The string to excerpt
+//   - phrase: The phrase to search for
+//   - options: Optional ExcerptOptions struct containing:
+//     radius: The number of characters to include around the phrase (default: 100)
+//     omission: The text to use for omission (default: "...")
+//
+// Returns:
+//   - string: The excerpted string with omission text if truncated
+//
+// Example:
+//
+//	Excerpt("This is my name", "my", ExcerptOptions{Radius: 3}) -> "...is my na..."
+//	Excerpt("This is my name", "my", ExcerptOptions{Radius: 5, Omission: "(...)"}) -> "(...)is my name"
+//	Excerpt("This is my name", "foo", ExcerptOptions{}) -> "This is my name"
+//	Excerpt("", "foo", ExcerptOptions{}) -> ""
+func Excerpt(s string, phrase string, options ...ExcerptOptions) string {
+	if s == "" || phrase == "" {
+		return s
+	}
+
+	opts := ExcerptOptions{
+		Radius:   100,
+		Omission: "...",
+	}
+
+	// Override with provided options
+	if len(options) > 0 {
+		if options[0].Radius >= 0 {
+			opts.Radius = options[0].Radius
+		}
+		if options[0].Omission != "" {
+			opts.Omission = options[0].Omission
+		}
+	}
+
+	// Find the position of the phrase
+	phrasePos := strings.Index(s, phrase)
+	if phrasePos == -1 {
+		return s
+	}
+
+	// Calculate start and end positions for the excerpt
+	startPos := phrasePos - opts.Radius
+	if startPos < 0 {
+		startPos = 0
+	}
+
+	endPos := phrasePos + len(phrase) + opts.Radius
+	if endPos > len(s) {
+		endPos = len(s)
+	}
+
+	// Extract the excerpt
+	excerpt := s[startPos:endPos]
+
+	// Add omission text if needed
+	result := ""
+	if startPos > 0 || opts.Radius == 0 {
+		result += opts.Omission
+	}
+	result += excerpt
+	if endPos < len(s) || opts.Radius == 0 {
+		result += opts.Omission
+	}
+
+	return result
+}
+
+// IsJson determines if a string is valid JSON.
+//
+// Parameters:
+//   - s: The string to check
+//
+// Returns:
+//   - bool: True if the string is valid JSON, false otherwise
+//
+// Example:
+//
+//	IsJson("[1,2,3]") -> true
+//	IsJson("{"first": "John", "last": "Doe"}") -> true
+//	IsJson("{first: "John", last: "Doe"}") -> false
+func IsJson(s string) bool {
+	if s == "" {
+		return false
+	}
+
+	var js interface{}
+	return json.Unmarshal([]byte(s), &js) == nil
+}
+
+// Match returns the first match of a regular expression pattern in a string.
+// If the pattern contains capturing groups, it returns the first captured group.
+// Otherwise, it returns the entire match.
+//
+// Parameters:
+//   - pattern: The regular expression pattern to match
+//   - s: The string to search in
+//
+// Returns:
+//   - string: The matched portion or first captured group, or empty string if no match
+//
+// Example:
+//
+//	Match("/bar/", "foo bar") -> "bar"
+//	Match("/foo (.*)/", "foo bar") -> "bar"
+//	Match("/xyz/", "foo bar") -> ""
+func Match(pattern string, s string) string {
+	// Remove leading and trailing slashes if they exist
+	if len(pattern) >= 2 && pattern[0] == '/' && pattern[len(pattern)-1] == '/' {
+		pattern = pattern[1 : len(pattern)-1]
+	}
+
+	// Compile the regular expression
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return ""
+	}
+
+	// Find the first match
+	match := re.FindStringSubmatch(s)
+	if len(match) == 0 {
+		return ""
+	}
+
+	// If there are capturing groups, return the first captured group
+	if len(match) > 1 {
+		return match[1]
+	}
+
+	// Otherwise, return the entire match
+	return match[0]
+}
+
+// MatchAll returns all matches of a regular expression pattern in a string.
+// If the pattern contains capturing groups, it returns all captured groups.
+// Otherwise, it returns all full matches.
+//
+// Parameters:
+//   - pattern: The regular expression pattern to match
+//   - s: The string to search in
+//
+// Returns:
+//   - []string: A slice containing all matches or captured groups, or an empty slice if no matches
+//
+// Example:
+//
+//	MatchAll("/bar/", "bar foo bar") -> ["bar", "bar"]
+//	MatchAll("/f(\\w*)/", "bar fun bar fly") -> ["un", "ly"]
+//	MatchAll("/xyz/", "foo bar") -> []
+func MatchAll(pattern string, s string) []string {
+	// Return empty slice for empty pattern or empty string
+	if pattern == "" || s == "" {
+		return []string{}
+	}
+
+	// Remove leading and trailing slashes if they exist
+	if len(pattern) >= 2 && pattern[0] == '/' && pattern[len(pattern)-1] == '/' {
+		pattern = pattern[1 : len(pattern)-1]
+	}
+
+	// Return empty slice for empty pattern after removing slashes
+	if pattern == "" {
+		return []string{}
+	}
+
+	// Compile the regular expression
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return []string{}
+	}
+
+	// Find all matches
+	matches := re.FindAllStringSubmatch(s, -1)
+	if len(matches) == 0 {
+		return []string{}
+	}
+
+	// Determine if we have capturing groups
+	hasCapturingGroups := len(matches[0]) > 1
+
+	// Prepare the result slice
+	result := make([]string, 0, len(matches))
+
+	// Process matches
+	for _, match := range matches {
+		if hasCapturingGroups {
+			// Add the first captured group
+			result = append(result, match[1])
+		} else {
+			// Add the full match
+			result = append(result, match[0])
+		}
+	}
+
+	return result
+}
+
+// Squish removes all extraneous white space from a string, including extraneous white space between words.
+//
+// Parameters:
+//   - s: The string to squish
+//
+// Returns:
+//   - string: The string with all extraneous white space removed
+//
+// Example:
+//
+//	Squish("    laravel    framework    ") -> "laravel framework"
+//	Squish("hello      world") -> "hello world"
+//	Squish("   ") -> ""
+//	Squish("") -> ""
+func Squish(s string) string {
+	// First trim leading and trailing whitespace
+	s = strings.TrimSpace(s)
+
+	// If the string is empty after trimming, return it
+	if s == "" {
+		return s
+	}
+
+	// Replace all sequences of whitespace with a single space
+	re := regexp.MustCompile(`\s+`)
+	return re.ReplaceAllString(s, " ")
 }

@@ -453,6 +453,32 @@ func TestPascalCase(t *testing.T) {
 	}
 }
 
+func TestHeadline(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"steve_jobs", "Steve Jobs"},
+		{"EmailNotificationSent", "Email Notification Sent"},
+		{"foo bar", "Foo Bar"},
+		{"foo_bar_baz", "Foo Bar Baz"},
+		{"foo-bar", "Foo Bar"},
+		{"", ""},
+		{"foo", "Foo"},
+		{"FOO BAR", "Foo Bar"},
+		{"fooBarBaz", "Foo Bar Baz"},
+		{"FooBarBaz", "Foo Bar Baz"},
+		{"foo_bar-baz", "Foo Bar Baz"},
+	}
+
+	for _, test := range tests {
+		result := Headline(test.input)
+		if result != test.expected {
+			t.Errorf("Headline(%q) = %q, expected %q", test.input, result, test.expected)
+		}
+	}
+}
+
 func TestTrimStart(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -877,9 +903,9 @@ func TestRuneLength(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := RuneLength(test.input)
+		result := Length(test.input)
 		if result != test.expected {
-			t.Errorf("RuneLength(%q) = %d, expected %d", test.input, result, test.expected)
+			t.Errorf("Length(%q) = %d, expected %d", test.input, result, test.expected)
 		}
 	}
 }
@@ -1013,6 +1039,37 @@ func TestBetween(t *testing.T) {
 	}
 }
 
+func TestBetweenFirst(t *testing.T) {
+	tests := []struct {
+		input    string
+		start    string
+		end      string
+		expected string
+	}{
+		{"[a] bc [d]", "[", "]", "a"},
+		{"hello [world]", "[", "]", "world"},
+		{"[hello] world", "[", "]", "hello"},
+		{"hello [world] test", "[", "]", "world"},
+		{"hello world", "[", "]", "hello world"},   // Not found returns original string
+		{"hello [world", "[", "]", "hello [world"}, // End not found returns original string
+		{"hello] world", "[", "]", "hello] world"}, // Start not found returns original string
+		{"", "[", "]", ""},
+		{"[hello][world]", "[", "]", "hello"},
+		{"hello [world] [test]", "[", "]", "world"},
+		{"hello [world [test]]", "[", "]", "world [test"},
+		{"hello world", "", "]", "hello world"}, // Empty start returns original string
+		{"hello world", "[", "", "hello world"}, // Empty end returns original string
+	}
+
+	for _, test := range tests {
+		result := BetweenFirst(test.input, test.start, test.end)
+		if result != test.expected {
+			t.Errorf("BetweenFirst(%q, %q, %q) = %q, expected %q",
+				test.input, test.start, test.end, result, test.expected)
+		}
+	}
+}
+
 func TestContainsAll(t *testing.T) {
 	tests := []struct {
 		input      string
@@ -1115,21 +1172,60 @@ func TestIsAscii(t *testing.T) {
 	}
 }
 
+func TestAscii(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"hello", "hello"},
+		{"Hello, World!", "Hello, World!"},
+		{"123", "123"},
+		{"", ""},
+		{"café", "cafe"},
+		{"über", "uber"},
+		{"Crème Brûlée", "Creme Brulee"},
+		{"û", "u"},
+		{"Æ", "AE"},
+		{"æ", "ae"},
+		{"Ç", "C"},
+		{"ç", "c"},
+		{"É", "E"},
+		{"é", "e"},
+		{"Ñ", "N"},
+		{"ñ", "n"},
+		{"Ö", "O"},
+		{"ö", "o"},
+		{"Ü", "U"},
+		{"ü", "u"},
+		{"ß", "ss"},
+		{"Ý", "Y"},
+		{"ý", "y"},
+	}
+
+	for _, test := range tests {
+		result := Ascii(test.input)
+		if result != test.expected {
+			t.Errorf("Ascii(%q) = %q, expected %q", test.input, result, test.expected)
+		}
+	}
+}
+
 func TestLimit(t *testing.T) {
 	tests := []struct {
 		input    string
 		limit    int
+		tail     string
 		expected string
 	}{
-		{"hello world", 5, "hello..."},
-		{"hello", 10, "hello"},
-		{"", 5, ""},
-		{"hello world", 0, "..."},
-		{"你好世界", 2, "你好..."}, // 2 Unicode characters
+		{"hello world", 5, "...", "hello..."},
+		{"hello", 10, "...", "hello"},
+		{"", 5, "...", ""},
+		{"hello world", 0, "(...)", ""},
+		{"你好世界", 2, "(...)", "你好(...)"}, // 2 Unicode characters
 	}
 
 	for _, test := range tests {
-		result := Limit(test.input, test.limit)
+		result := Limit(test.input, test.limit, test.tail)
 		if result != test.expected {
 			t.Errorf("Limit(%q, %d) = %q, expected %q", test.input, test.limit, result, test.expected)
 		}
@@ -1170,6 +1266,72 @@ func TestRandom(t *testing.T) {
 				t.Errorf("Random(%d) did not generate different strings in 5 attempts", length)
 			}
 		}
+	}
+}
+
+func TestPassword(t *testing.T) {
+	// Test default length and custom lengths
+	tests := []struct {
+		name     string
+		args     []int
+		expected int
+	}{
+		{"Default length", nil, 32},
+		{"Custom length", []int{12}, 12},
+		{"Zero length", []int{0}, 0},
+		{"Negative length", []int{-5}, 0},
+		{"Multiple args (only first used)", []int{8, 16}, 8},
+	}
+
+	// Define valid charset characters
+	validChars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:,.<>?/~"
+	validCharMap := make(map[rune]bool)
+	for _, c := range validChars {
+		validCharMap[c] = true
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var result string
+			if test.args == nil {
+				result = Password()
+			} else {
+				result = Password(test.args...)
+			}
+
+			// Check length
+			if len(result) != test.expected {
+				t.Errorf("Password(%v) returned string of length %d, expected %d", test.args, len(result), test.expected)
+			}
+
+			// Check randomness by generating multiple strings
+			if test.expected > 0 {
+				results := make(map[string]bool)
+				for i := 0; i < 5; i++ {
+					var r string
+					if test.args == nil {
+						r = Password()
+					} else {
+						r = Password(test.args...)
+					}
+					results[r] = true
+
+					// Check that all characters are valid
+					for _, c := range r {
+						if !validCharMap[c] {
+							t.Errorf("Password(%v) returned string with invalid character: %q", test.args, r)
+							break
+						}
+					}
+				}
+
+				// Check that we got at least 2 different strings (very high probability)
+				// Skip this check for very short lengths
+				if test.expected > 1 && len(results) < 2 {
+					t.Errorf("Password(%v) did not generate different strings in 5 attempts", test.args)
+				}
+			}
+		})
 	}
 }
 
@@ -1221,6 +1383,33 @@ func TestReplaceFirst(t *testing.T) {
 		if result != test.expected {
 			t.Errorf("ReplaceFirst(%q, %q, %q) = %q, expected %q",
 				test.search, test.replace, test.subject, result, test.expected)
+		}
+	}
+}
+
+func TestTruncate(t *testing.T) {
+	tests := []struct {
+		input     string
+		maxLength int
+		expected  string
+	}{
+		{"Hello, World", 5, "Hello..."},
+		{"Hello", 10, "Hello"},
+		{"", 5, ""},
+		{"Hello", 0, ""},
+		{"Hello", -1, ""},
+		// For Unicode strings, we need to be careful with byte lengths
+		// Each Chinese character takes 3 bytes in UTF-8
+		{"你好世界", 6, "你好..."},
+		{"Hello, World", 12, "Hello, World"},
+		{"Hello, World", 11, "Hello, Worl..."},
+	}
+
+	for _, test := range tests {
+		result := Truncate(test.input, test.maxLength)
+		if result != test.expected {
+			t.Errorf("Truncate(%q, %d) = %q, expected %q",
+				test.input, test.maxLength, result, test.expected)
 		}
 	}
 }
@@ -1544,6 +1733,591 @@ func TestWordwrap(t *testing.T) {
 		if result != test.expected {
 			t.Errorf("Wordwrap(%q, %d, %q) = %q, expected %q",
 				test.input, test.width, test.breakChar, result, test.expected)
+		}
+	}
+}
+
+func TestApa(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"Creating A Project", "Creating a Project"},
+		{"HELLO WORLD", "Hello WORLD"},
+		{"hello WORLD", "Hello WORLD"},
+		{"hElLo WoRlD", "Hello WoRlD"},
+		{"", ""},
+		{"hello", "Hello"},
+		{"A B C", "A b c"},
+		{"THE QUICK BROWN FOX", "The QUICK BROWN FOX"},
+		{"the quick brown fox", "The quick brown fox"},
+	}
+
+	for _, test := range tests {
+		result := Apa(test.input)
+		if result != test.expected {
+			t.Errorf("Apa(%q) = %q, expected %q", test.input, result, test.expected)
+		}
+	}
+}
+
+func TestCharAt(t *testing.T) {
+	tests := []struct {
+		input    string
+		position int
+		expected string
+	}{
+		{"This is my name.", 6, "s"},
+		{"Hello", 0, "H"},
+		{"Hello", 4, "o"},
+		{"Hello", 5, ""},        // Position out of bounds
+		{"Hello", -1, ""},       // Negative position
+		{"", 0, ""},             // Empty string
+		{"你好世界", 0, "你"},        // Unicode character
+		{"你好世界", 2, "世"},        // Unicode character
+		{"你好世界", 4, ""},         // Position out of bounds
+		{"Hello World", 5, " "}, // Space character
+	}
+
+	for _, test := range tests {
+		result := CharAt(test.input, test.position)
+		if result != test.expected {
+			t.Errorf("CharAt(%q, %d) = %q, expected %q", test.input, test.position, result, test.expected)
+		}
+	}
+}
+
+func TestWordAt(t *testing.T) {
+	tests := []struct {
+		input    string
+		position int
+		expected string
+	}{
+		{"This is my name.", 6, "is"},
+		{"Hello world", 0, "Hello"},
+		{"Hello world", 6, "world"},
+		{"Hello world", 12, ""},              // Position out of bounds
+		{"Hello", -1, ""},                    // Negative position
+		{"", 0, ""},                          // Empty string
+		{"One two three", 4, "two"},          // Position in the middle of a word
+		{"One two three", 8, "three"},        // Position at the start of a word
+		{"Hello, world!", 7, "world"},        // Position with punctuation
+		{"Multiple   spaces", 9, "spaces"},   // Multiple spaces between words
+		{"Tab\tseparated", 4, "separated"},   // Tab character
+		{"Line\nbreak", 5, "break"},          // Line break
+		{"Hyphenated-word", 0, "Hyphenated"}, // Hyphenated word
+		{"Don't worry", 0, "Don't"},          // Word with apostrophe
+	}
+
+	for _, test := range tests {
+		result := WordAt(test.input, test.position)
+		if result != test.expected {
+			t.Errorf("WordAt(%q, %d) = %q, expected %q", test.input, test.position, result, test.expected)
+		}
+	}
+}
+
+func TestChopStart(t *testing.T) {
+	// Test with single prefix
+	singlePrefixTests := []struct {
+		input    string
+		prefix   string
+		expected string
+	}{
+		{"https://laravel.com", "https://", "laravel.com"},
+		{"http://laravel.com", "https://", "http://laravel.com"}, // No match
+		{"laravel.com", "https://", "laravel.com"},               // No prefix to remove
+		{"", "https://", ""},                                     // Empty string
+		{"https://", "https://", ""},                             // Only prefix
+		{"https://laravel.com", "", "https://laravel.com"},       // Empty prefix
+	}
+
+	for _, test := range singlePrefixTests {
+		result := ChopStart(test.input, test.prefix)
+		if result != test.expected {
+			t.Errorf("ChopStart(%q, %q) = %q, expected %q", test.input, test.prefix, result, test.expected)
+		}
+	}
+
+	// Test with array of prefixes
+	multiPrefixTests := []struct {
+		input    string
+		prefixes []string
+		expected string
+	}{
+		{"https://laravel.com", []string{"https://", "http://"}, "laravel.com"},
+		{"http://laravel.com", []string{"https://", "http://"}, "laravel.com"},
+		{"ftp://laravel.com", []string{"https://", "http://"}, "ftp://laravel.com"}, // No match
+		{"laravel.com", []string{"https://", "http://"}, "laravel.com"},             // No prefix to remove
+		{"", []string{"https://", "http://"}, ""},                                   // Empty string
+		{"https://", []string{"https://", "http://"}, ""},                           // Only prefix
+		{"http://", []string{"https://", "http://"}, ""},                            // Only prefix
+		{"https://laravel.com", []string{}, "https://laravel.com"},                  // Empty prefixes array
+	}
+
+	for _, test := range multiPrefixTests {
+		result := ChopStart(test.input, test.prefixes)
+		if result != test.expected {
+			t.Errorf("ChopStart(%q, %v) = %q, expected %q", test.input, test.prefixes, result, test.expected)
+		}
+	}
+}
+
+func TestDoesntContain(t *testing.T) {
+	// Test with single substring
+	singleSubstrTests := []struct {
+		input    string
+		substr   string
+		expected bool
+	}{
+		{"This is name", "my", true},
+		{"This is my name", "my", false},
+		{"This is name", "", false},
+		{"", "my", true},
+		{"", "", false},
+	}
+
+	for _, test := range singleSubstrTests {
+		result := DoesntContain(test.input, test.substr)
+		if result != test.expected {
+			t.Errorf("DoesntContain(%q, %q) = %v, expected %v", test.input, test.substr, result, test.expected)
+		}
+	}
+
+	// Test with array of substrings
+	multiSubstrTests := []struct {
+		input      string
+		substrings []string
+		expected   bool
+	}{
+		{"This is name", []string{"my", "foo"}, true},
+		{"This is my name", []string{"my", "foo"}, false},
+		{"This is foo name", []string{"my", "foo"}, false},
+		{"This is name", []string{}, true},
+		{"", []string{"my", "foo"}, true},
+		{"This is name", []string{""}, false},
+		{"", []string{""}, false},
+	}
+
+	for _, test := range multiSubstrTests {
+		result := DoesntContain(test.input, test.substrings)
+		if result != test.expected {
+			t.Errorf("DoesntContain(%q, %v) = %v, expected %v", test.input, test.substrings, result, test.expected)
+		}
+	}
+}
+
+func TestChopEnd(t *testing.T) {
+	// Test with single suffix
+	singleSuffixTests := []struct {
+		input    string
+		suffix   string
+		expected string
+	}{
+		{"app/Models/Photograph.php", ".php", "app/Models/Photograph"},
+		{"app/Models/Photograph.jpg", ".php", "app/Models/Photograph.jpg"}, // No match
+		{"laravel.com", ".php", "laravel.com"},                             // No suffix to remove
+		{"", ".php", ""},                                                   // Empty string
+		{".php", ".php", ""},                                               // Only suffix
+		{"app/Models/Photograph.php", "", "app/Models/Photograph.php"},     // Empty suffix
+	}
+
+	for _, test := range singleSuffixTests {
+		result := ChopEnd(test.input, test.suffix)
+		if result != test.expected {
+			t.Errorf("ChopEnd(%q, %q) = %q, expected %q", test.input, test.suffix, result, test.expected)
+		}
+	}
+
+	// Test with array of suffixes
+	multiSuffixTests := []struct {
+		input    string
+		suffixes []string
+		expected string
+	}{
+		{"laravel.com/index.php", []string{"/index.html", "/index.php"}, "laravel.com"},
+		{"laravel.com/index.html", []string{"/index.html", "/index.php"}, "laravel.com"},
+		{"laravel.com/about", []string{"/index.html", "/index.php"}, "laravel.com/about"}, // No match
+		{"laravel.com", []string{"/index.html", "/index.php"}, "laravel.com"},             // No suffix to remove
+		{"", []string{"/index.html", "/index.php"}, ""},                                   // Empty string
+		{"/index.php", []string{"/index.html", "/index.php"}, ""},                         // Only suffix
+		{"/index.html", []string{"/index.html", "/index.php"}, ""},                        // Only suffix
+		{"laravel.com/index.php", []string{}, "laravel.com/index.php"},                    // Empty suffixes array
+	}
+
+	for _, test := range multiSuffixTests {
+		result := ChopEnd(test.input, test.suffixes)
+		if result != test.expected {
+			t.Errorf("ChopEnd(%q, %v) = %q, expected %q", test.input, test.suffixes, result, test.expected)
+		}
+	}
+}
+
+func TestExcerpt(t *testing.T) {
+	// Test with default options
+	defaultTests := []struct {
+		input    string
+		phrase   string
+		expected string
+	}{
+		{"This is my name", "my", "This is my name"},      // Short string, no truncation needed
+		{"This is my name", "name", "This is my name"},    // Short string, no truncation needed
+		{"This is my name", "missing", "This is my name"}, // Phrase not found
+		{"", "my", ""}, // Empty string
+		{"This is my name", "", "This is my name"}, // Empty phrase
+		{"This is a very long string that should be truncated because it exceeds the default radius", "long", "This is a very long string that should be truncated because it exceeds the default radius"}, // Long string but still within radius
+	}
+
+	for _, test := range defaultTests {
+		result := Excerpt(test.input, test.phrase)
+		if result != test.expected {
+			t.Errorf("Excerpt(%q, %q) = %q, expected %q", test.input, test.phrase, result, test.expected)
+		}
+	}
+
+	// Test with custom radius
+	radiusTests := []struct {
+		input    string
+		phrase   string
+		options  ExcerptOptions
+		expected string
+	}{
+		{"This is my name", "my", ExcerptOptions{Radius: 3}, "...is my na..."},
+		{"This is my name", "name", ExcerptOptions{Radius: 3}, "...my name"},
+		{"This is my name", "This", ExcerptOptions{Radius: 3}, "This is..."},
+		{"This is my name", "missing", ExcerptOptions{Radius: 3}, "This is my name"}, // Phrase not found
+		{"", "my", ExcerptOptions{Radius: 3}, ""},                                    // Empty string
+		{"This is my name", "", ExcerptOptions{Radius: 3}, "This is my name"},        // Empty phrase
+		{"This is my name", "my", ExcerptOptions{Radius: 0}, "...my..."},             // Zero radius
+		{"This is my name", "my", ExcerptOptions{Radius: 100}, "This is my name"},    // Large radius
+	}
+
+	for _, test := range radiusTests {
+		result := Excerpt(test.input, test.phrase, test.options)
+		if result != test.expected {
+			t.Errorf("Excerpt(%q, %q, %v) = %q, expected %q", test.input, test.phrase, test.options, result, test.expected)
+		}
+	}
+
+	// Test with custom omission
+	omissionTests := []struct {
+		input    string
+		phrase   string
+		options  ExcerptOptions
+		expected string
+	}{
+		{"This is my name", "my", ExcerptOptions{Radius: 3, Omission: "(...) "}, "(...) is my na(...) "},
+		{"This is my name", "name", ExcerptOptions{Radius: 3, Omission: "(...) "}, "(...) my name"},
+		{"This is my name", "This", ExcerptOptions{Radius: 3, Omission: "(...) "}, "This is(...) "},
+		{"This is my name", "my", ExcerptOptions{Omission: ""}, "...my..."},                  // Empty omission
+		{"This is my name", "my", ExcerptOptions{Radius: 3, Omission: ""}, "...is my na..."}, // Empty omission with radius
+	}
+
+	for _, test := range omissionTests {
+		result := Excerpt(test.input, test.phrase, test.options)
+		if result != test.expected {
+			t.Errorf("Excerpt(%q, %q, %v) = %q, expected %q", test.input, test.phrase, test.options, result, test.expected)
+		}
+	}
+}
+
+func TestIsJson(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		// Valid JSON examples
+		{"[1,2,3]", true},
+		{`{"first": "John", "last": "Doe"}`, true},
+		{"[]", true},
+		{"{}", true},
+		{"123", true},
+		{"true", true},
+		{"false", true},
+		{"null", true},
+		{`"string"`, true},
+
+		// Invalid JSON examples
+		{"{first: \"John\", last: \"Doe\"}", false},
+		{"[1,2,", false},
+		{"{key: value}", false},
+		{"", false},
+		{"undefined", false},
+		{"function(){}", false},
+		{"<html></html>", false},
+		{"Hello World", false},
+	}
+
+	for _, test := range tests {
+		result := IsJson(test.input)
+		if result != test.expected {
+			t.Errorf("IsJson(%q) = %v, expected %v", test.input, result, test.expected)
+		}
+	}
+}
+
+func TestMatch(t *testing.T) {
+	tests := []struct {
+		pattern  string
+		s        string
+		expected string
+	}{
+		// Basic matching with no capturing groups
+		{"/bar/", "foo bar", "bar"},
+		{"/foo/", "foo bar", "foo"},
+		{"/baz/", "foo bar", ""}, // No match
+
+		// Matching with capturing groups
+		{"/foo (.*)/", "foo bar", "bar"},
+		{"/foo (\\w+)/", "foo bar123", "bar123"},
+		{"/foo (\\w+) (\\w+)/", "foo bar baz", "bar"},       // Returns first group
+		{"/foo ((\\w+) (\\w+))/", "foo bar baz", "bar baz"}, // Nested groups
+
+		// Pattern with leading and trailing slashes
+		{"bar", "foo bar", "bar"},   // No slashes
+		{"(foo)", "foo bar", "foo"}, // No slashes with group
+
+		// Edge cases
+		{"", "foo bar", ""},    // Empty pattern
+		{"/foo/", "", ""},      // Empty string
+		{"/(/", "foo bar", ""}, // Invalid regex
+		{"/[/", "foo bar", ""}, // Invalid regex
+	}
+
+	for _, test := range tests {
+		result := Match(test.pattern, test.s)
+		if result != test.expected {
+			t.Errorf("Match(%q, %q) = %q, expected %q", test.pattern, test.s, result, test.expected)
+		}
+	}
+}
+
+func TestMatchAll(t *testing.T) {
+	tests := []struct {
+		pattern  string
+		s        string
+		expected []string
+	}{
+		// Basic matching with no capturing groups
+		{"/bar/", "bar foo bar", []string{"bar", "bar"}},
+		{"/foo/", "foo bar foo", []string{"foo", "foo"}},
+		{"/baz/", "foo bar", []string{}}, // No match
+
+		// Matching with capturing groups
+		{"/f(\\w*)/", "bar fun bar fly", []string{"un", "ly"}},
+		{"/b(a)r/", "bar foo bar", []string{"a", "a"}},
+		{"/foo (\\w+)/", "foo bar foo baz", []string{"bar", "baz"}},
+		{"/foo ((\\w+) (\\w+))/", "foo bar baz foo qux quux", []string{"bar baz", "qux quux"}}, // Nested groups
+
+		// Pattern with leading and trailing slashes
+		{"bar", "bar foo bar", []string{"bar", "bar"}},   // No slashes
+		{"(foo)", "foo bar foo", []string{"foo", "foo"}}, // No slashes with group
+
+		// Edge cases
+		{"", "foo bar", []string{}},    // Empty pattern
+		{"/foo/", "", []string{}},      // Empty string
+		{"/(/", "foo bar", []string{}}, // Invalid regex
+		{"/[/", "foo bar", []string{}}, // Invalid regex
+	}
+
+	for _, test := range tests {
+		result := MatchAll(test.pattern, test.s)
+
+		// Check if lengths match
+		if len(result) != len(test.expected) {
+			t.Errorf("MatchAll(%q, %q) returned %d results, expected %d", test.pattern, test.s, len(result), len(test.expected))
+			continue
+		}
+
+		// Check each element
+		for i := range result {
+			if result[i] != test.expected[i] {
+				t.Errorf("MatchAll(%q, %q)[%d] = %q, expected %q", test.pattern, test.s, i, result[i], test.expected[i])
+			}
+		}
+	}
+}
+
+func TestRemove(t *testing.T) {
+	tests := []struct {
+		search   string
+		subject  string
+		useRegex bool
+		expected string
+	}{
+		// Basic character removal
+		{"e", "Peter Piper picked a peck of pickled peppers.", false, "Ptr Pipr pickd a pck of pickld ppprs."},
+		{"a", "banana", false, "bnn"},
+		{"x", "banana", false, "banana"}, // No occurrences
+
+		// String removal
+		{"abc", "abcdef", false, "def"},
+		{"abc", "abcabcabc", false, ""},
+		{"world", "hello world", false, "hello "},
+
+		// Empty strings
+		{"", "hello", false, "hello"}, // Empty search string
+		{"a", "", false, ""},          // Empty subject
+		{"", "", false, ""},           // Both empty
+
+		// Regex removal
+		{"[aeiou]", "Hello World", true, "Hll Wrld"}, // Remove vowels
+		{"\\d+", "abc123def456", true, "abcdef"},     // Remove digits
+		{"\\s+", "Hello  World", true, "HelloWorld"}, // Remove whitespace
+
+		// Invalid regex (should fall back to string replacement)
+		{"[", "abc[def", true, "abcdef"},
+
+		// Edge cases
+		{" ", "a b c", false, "abc"},                // Remove spaces
+		{"\n", "line1\nline2", false, "line1line2"}, // Remove newlines
+	}
+
+	for _, test := range tests {
+		var result string
+		if test.useRegex {
+			result = Remove(test.search, test.subject, true)
+		} else {
+			result = Remove(test.search, test.subject)
+		}
+
+		if result != test.expected {
+			t.Errorf("Remove(%q, %q, %v) = %q, expected %q",
+				test.search, test.subject, test.useRegex, result, test.expected)
+		}
+	}
+}
+
+func TestReplaceMatches(t *testing.T) {
+	// Test cases for string replacements
+	stringTests := []struct {
+		pattern  string
+		replace  string
+		subject  string
+		expected string
+	}{
+		// Basic replacements
+		{"/[^A-Za-z0-9]+/", "", "(+1) 501-555-1000", "15015551000"}, // Example from the issue description (using standard quantifier)
+		{"/\\d/", "X", "123", "XXX"},                                // Replace digits with X
+		{"/\\s+/", "-", "hello  world", "hello-world"},              // Replace whitespace with dash
+
+		// Pattern with and without slashes
+		{"[aeiou]", "*", "hello world", "h*ll* w*rld"},   // No slashes
+		{"/[aeiou]/", "*", "hello world", "h*ll* w*rld"}, // With slashes
+
+		// Edge cases
+		{"", "replacement", "subject", "subject"},                  // Empty pattern
+		{"/pattern/", "replacement", "", ""},                       // Empty subject
+		{"/[/", "replacement", "invalid [regex", "invalid [regex"}, // Invalid regex
+		{"/pattern/", "", "pattern exists", " exists"},             // Empty replacement (only replaces "pattern", not the entire string)
+	}
+
+	for _, test := range stringTests {
+		result := ReplaceMatches(test.pattern, test.replace, test.subject)
+		if result != test.expected {
+			t.Errorf("ReplaceMatches(%q, %q, %q) = %q, expected %q",
+				test.pattern, test.replace, test.subject, result, test.expected)
+		}
+	}
+
+	// Test cases for function replacements
+	// Example from the issue description: wrapping digits in square brackets
+	result1 := ReplaceMatches("/\\d/", func(matches []string) string {
+		return "[" + matches[0] + "]"
+	}, "123")
+	expected1 := "[1][2][3]"
+	if result1 != expected1 {
+		t.Errorf("ReplaceMatches with function: got %q, expected %q", result1, expected1)
+	}
+
+	// Uppercase all matched words
+	result2 := ReplaceMatches("/\\b\\w+\\b/", func(matches []string) string {
+		return strings.ToUpper(matches[0])
+	}, "hello world")
+	expected2 := "HELLO WORLD"
+	if result2 != expected2 {
+		t.Errorf("ReplaceMatches with function: got %q, expected %q", result2, expected2)
+	}
+
+	// Double all matched numbers
+	result3 := ReplaceMatches("/\\d+/", func(matches []string) string {
+		return matches[0] + matches[0]
+	}, "There are 25 apples and 10 oranges")
+	expected3 := "There are 2525 apples and 1010 oranges"
+	if result3 != expected3 {
+		t.Errorf("ReplaceMatches with function: got %q, expected %q", result3, expected3)
+	}
+
+	// Test with capturing groups
+	result4 := ReplaceMatches("/(\\w+)=(\\w+)/", func(matches []string) string {
+		// matches[0] is the full match, matches[1] and matches[2] are the capturing groups
+		return matches[2] + ":" + matches[1]
+	}, "key=value")
+	expected4 := "value:key"
+	if result4 != expected4 {
+		t.Errorf("ReplaceMatches with function and capturing groups: got %q, expected %q", result4, expected4)
+	}
+
+	// Test with unsupported replacement type
+	result5 := ReplaceMatches("/\\d/", 123, "123") // Passing an int instead of string or function
+	expected5 := "123"                             // Should return the original string
+	if result5 != expected5 {
+		t.Errorf("ReplaceMatches with unsupported replacement type: got %q, expected %q", result5, expected5)
+	}
+}
+
+func TestSquish(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		// Example from the issue description
+		{"    laravel    framework    ", "laravel framework"},
+
+		// Other test cases
+		{"hello      world", "hello world"},
+		{"   ", ""},
+		{"", ""},
+		{"\t\n hello \t\n world \t\n", "hello world"}, // Tabs and newlines
+		{"multiple   spaces   between   words", "multiple spaces between words"},
+		{"no extra spaces", "no extra spaces"}, // Already properly spaced
+		{" leading space", "leading space"},
+		{"trailing space ", "trailing space"},
+		{" both leading and trailing spaces ", "both leading and trailing spaces"},
+		{"   multiple    leading    and    trailing    spaces   ", "multiple leading and trailing spaces"},
+	}
+
+	for _, test := range tests {
+		result := Squish(test.input)
+		if result != test.expected {
+			t.Errorf("Squish(%q) = %q, expected %q", test.input, result, test.expected)
+		}
+	}
+}
+
+func TestSwap(t *testing.T) {
+	tests := []struct {
+		subject      string
+		replacements map[string]string
+		expected     string
+	}{
+		// Example from the issue description
+		{"Tacos are great!", map[string]string{"Tacos": "Burritos", "great": "fantastic"}, "Burritos are fantastic!"},
+
+		// Other test cases
+		{"abc", map[string]string{"a": "x", "b": "y"}, "xyc"},
+		{"hello world", map[string]string{}, "hello world"}, // No replacements
+		{"", map[string]string{"a": "b"}, ""},               // Empty string
+		{"hello world", map[string]string{"hello": "hi", "world": "earth"}, "hi earth"},
+		{"hello hello world", map[string]string{"hello": "hi"}, "hi hi world"},        // Multiple occurrences
+		{"hello world", map[string]string{"not found": "replacement"}, "hello world"}, // Search not found
+		{"The quick brown fox", map[string]string{"quick": "slow", "brown": "red", "fox": "dog"}, "The slow red dog"},
+	}
+
+	for _, test := range tests {
+		result := Swap(test.replacements, test.subject)
+		if result != test.expected {
+			t.Errorf("Swap(%v, %q) = %q, expected %q", test.replacements, test.subject, result, test.expected)
 		}
 	}
 }
