@@ -1,4 +1,4 @@
-# gFlyDev Utils (gflydev/utils)
+# gFly Utils
 
 A modern Go utility library delivering modularity, performance, and extras. Inspired by [Lodash](https://lodash.com/) and [Laravel](https://laravel.com) ([Helpers](https://laravel.com/docs/12.x/helpers), [String](https://laravel.com/docs/12.x/strings), [Collection](https://laravel.com/docs/12.x/collections)).
 
